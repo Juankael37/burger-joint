@@ -314,7 +314,7 @@ function renderAdminItems() {
                 <div class="branch-availability">
                     <span class="availability-label">${branchName}:</span>
                     <label class="toggle-switch" onclick="toggleItemAvailability('${item.id}', '${currentAdminBranch}')">
-                        <input type="checkbox" data-item-id="${item.id}" data-branch-id="${currentAdminBranch}" ${!unavailableAtBranch ? 'checked' : ''} readonly>
+                        <input type="checkbox" data-item-id="${item.id}" data-branch-id="${currentAdminBranch}" ${!unavailableAtBranch ? 'checked' : ''}>
                         <span class="toggle-slider"></span>
                     </label>
                     <span class="availability-text ${unavailableAtBranch ? 'unavailable-text' : ''}">
