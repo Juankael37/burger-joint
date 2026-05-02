@@ -123,7 +123,8 @@
             const orderData = {
                 items: cart.map(item => ({ name: item.name, price: item.price, qty: item.qty })),
                 total: getCartTotal(),
-                pickup_name: pickupName
+                pickup_name: pickupName,
+                order_number: Math.floor(1000 + Math.random() * 9000) // Generate 4-digit number
             };
             
             try {
@@ -140,16 +141,29 @@
                         items: orderData.items,
                         total: orderData.total,
                         pickup_name: orderData.pickup_name,
+                        order_number: orderData.order_number,
                         status: 'pending'
                     })
                 });
                 
                 if (!response.ok) throw new Error('Failed to create order');
                 
+                // Store order number for display
+                window.pendingOrderNumber = orderData.order_number;
+                
                 // Show success
                 document.getElementById('checkoutPage').style.display = 'none';
                 document.getElementById('successPage').style.display = 'block';
-                document.getElementById('confirmPickup').textContent = 'Pickup: ' + pickupName;
+                document.getElementById('confirmPickup').innerHTML = `
+                    <div style="font-size: 2rem; font-weight: bold; color: var(--primary-red);">Order #${orderData.order_number}</div>
+                    <div style="font-size: 1.2rem; margin-top: 10px;">Name: ${pickupName}</div>
+                `;
+                
+                // Add instruction message
+                const instruction = document.createElement('p');
+                instruction.style.cssText = 'background: #FFF3E0; padding: 15px; border-radius: 8px; margin-top: 20px; font-size: 1rem;';
+                instruction.innerHTML = '📢 At the counter, tell staff your <strong>order number #' + orderData.order_number + '</strong> and your <strong>name: ' + pickupName + '</strong>';
+                document.querySelector('.success-message').appendChild(instruction);
                 
                 // Clear cart
                 clearCart();
