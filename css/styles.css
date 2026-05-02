@@ -1720,3 +1720,46 @@ input:checked + .slider::before {
     text-align: center;
     color: var(--medium-gray);
 }
+
+.branch-select {
+    padding: 8px 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: var(--white);
+    cursor: pointer;
+}
+
+.branch-select:focus {
+    border-color: var(--primary-red);
+    outline: none;
+}
+
+.availability-btn {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    margin: 8px 0;
+    border: 2px solid #4CAF50;
+    border-radius: 6px;
+    background: var(--white);
+    color: #4CAF50;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.availability-btn:hover {
+    background: #4CAF50;
+    color: var(--white);
+}
+
+.availability-btn.unavailable {
+    border-color: #F44336;
+    color: #F44336;
+}
+
+.availability-btn.unavailable:hover {
+    background: #F44336;
+    color: var(--white);
+}

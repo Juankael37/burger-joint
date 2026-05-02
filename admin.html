@@ -41,6 +41,9 @@
                     <a href="index.html" class="nav-tab" target="_blank">🌐 View Site</a>
                 </nav>
                 <div class="admin-actions">
+                    <select id="adminBranchSelect" class="branch-select" onchange="switchAdminBranch(this.value)">
+                        <option value="">All Branches</option>
+                    </select>
                     <button class="btn btn-primary" id="publishBtn">🚀 Publish Menu</button>
                     <button class="btn btn-danger" id="logoutBtn">Logout</button>
                 </div>

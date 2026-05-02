@@ -266,8 +266,20 @@
         async function loadOrderMenu() {
             let items = defaultMenuItems;
             
+            const branchSlug = localStorage.getItem('bigBunsBranch');
+            let branchId = null;
+            
             try {
-                const fetchedItems = await supabaseClient.getMenuItems();
+                if (branchSlug) {
+                    const branches = await supabaseClient.getBranches();
+                    const branch = branches.find(b => b.slug === branchSlug);
+                    if (branch) branchId = branch.id;
+                }
+                
+                const fetchedItems = branchId 
+                    ? await supabaseClient.getMenuItemsForBranch(branchId)
+                    : await supabaseClient.getMenuItems();
+                    
                 if (fetchedItems && fetchedItems.length > 0) {
                     items = fetchedItems;
                 }

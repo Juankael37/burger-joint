@@ -12,6 +12,50 @@ let currentFilter = 'all';
 let editingItemId = null;
 let deleteItemId = null;
 let currentImageData = null;
+let currentAdminBranch = '';
+let branchesData = {};
+
+async function loadBranchesForAdmin() {
+    try {
+        const branches = await supabaseClient.getBranches();
+        const select = document.getElementById('adminBranchSelect');
+        if (select && branches) {
+            branches.forEach(branch => {
+                branchesData[branch.id] = branch;
+                const option = document.createElement('option');
+                option.value = branch.id;
+                option.textContent = branch.name;
+                select.appendChild(option);
+            });
+        }
+    } catch (e) {
+        console.log('Failed to load branches:', e);
+    }
+}
+
+function switchAdminBranch(branchId) {
+    currentAdminBranch = branchId;
+    sessionStorage.setItem('adminBranch', branchId);
+    renderAdminItems();
+}
+
+function isItemUnavailableAtBranch(item, branchId) {
+    if (!branchId) return false;
+    const unavailable = item.unavailable_at_branches || [];
+    return unavailable.includes(branchId);
+}
+
+function toggleItemUnavailable(itemId, branchId) {
+    const item = menuItems.find(i => i.id === itemId);
+    if (!item) return;
+    
+    const unavailable = item.unavailable_at_branches || [];
+    const isUnavailable = unavailable.includes(branchId);
+    
+    supabaseClient.toggleItemAvailability(itemId, branchId, !isUnavailable).then(() => {
+        loadAdminItems();
+    });
+}
 
 function initLogin() {
     const loginForm = document.getElementById('loginForm');
@@ -44,6 +88,14 @@ function initLogin() {
 async function showDashboard() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
+    await loadBranchesForAdmin();
+    
+    const savedBranch = sessionStorage.getItem('adminBranch');
+    if (savedBranch) {
+        currentAdminBranch = savedBranch;
+        document.getElementById('adminBranchSelect').value = savedBranch;
+    }
+    
     await loadAdminItems();
     initAdminEventListeners();
 }
@@ -216,7 +268,16 @@ function renderAdminItems() {
         return;
     }
 
-    itemsGrid.innerHTML = filteredItems.map(item => `
+    itemsGrid.innerHTML = filteredItems.map(item => {
+        const unavailableAtBranch = currentAdminBranch ? isItemUnavailableAtBranch(item, currentAdminBranch) : false;
+        const branchToggleBtn = currentAdminBranch ? `
+            <button class="availability-btn ${unavailableAtBranch ? 'unavailable' : ''}" 
+                onclick="toggleItemUnavailable('${item.id}', '${currentAdminBranch}')">
+                ${unavailableAtBranch ? '❌ Unavailable' : '✓ Available'}
+            </button>
+        ` : '';
+        
+        return `
         <div class="admin-item-card">
             <img src="${item.image}" alt="${item.name}" class="admin-item-image">
             <div class="admin-item-content">
@@ -224,13 +285,14 @@ function renderAdminItems() {
                 <p class="admin-item-category">${item.category}</p>
                 <p class="admin-item-price">₱${parseFloat(item.price).toFixed(2)}</p>
                 <span class="admin-item-status ${item.status}">${item.status}</span>
+                ${branchToggleBtn}
                 <div class="admin-item-actions">
                     <button class="edit-btn" onclick="editItem('${item.id}')">Edit</button>
                     <button class="delete-btn" onclick="deleteItem('${item.id}')">Delete</button>
                 </div>
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 function updateStats() {

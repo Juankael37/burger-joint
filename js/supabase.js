@@ -22,6 +22,26 @@ const supabaseClient = {
         return response.json();
     },
 
+    async getMenuItemsForBranch(branchId) {
+        const response = await fetch(
+            `${supabaseUrl}/rest/v1/menu_items?status=eq.published&order=category,created_at`, 
+            {
+                headers: {
+                    'apikey': supabaseKey,
+                    'Authorization': `Bearer ${supabaseKey}`
+                }
+            }
+        );
+        const items = await response.json();
+        
+        if (!branchId) return items;
+        
+        return items.filter(item => {
+            const unavailable = item.unavailable_at_branches || [];
+            return !unavailable.includes(branchId);
+        });
+    },
+
     async getAllMenuItems() {
         const response = await fetch(`${supabaseUrl}/rest/v1/menu_items?order=category,created_at`, {
             headers: {
@@ -58,6 +78,34 @@ const supabaseClient = {
             body: JSON.stringify(updates)
         });
         return response.json();
+    },
+
+    async toggleItemAvailability(itemId, branchId, makeUnavailable) {
+        const item = await this.getMenuItemById(itemId);
+        if (!item) return null;
+        
+        let unavailable = item.unavailable_at_branches || [];
+        
+        if (makeUnavailable) {
+            if (!unavailable.includes(branchId)) {
+                unavailable.push(branchId);
+            }
+        } else {
+            unavailable = unavailable.filter(id => id !== branchId);
+        }
+        
+        return this.updateMenuItem(itemId, { unavailable_at_branches: unavailable });
+    },
+
+    async getMenuItemById(id) {
+        const response = await fetch(`${supabaseUrl}/rest/v1/menu_items?id=eq.${id}`, {
+            headers: {
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`
+            }
+        });
+        const items = await response.json();
+        return items[0] || null;
     },
 
     async deleteMenuItem(id) {
