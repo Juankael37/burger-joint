@@ -162,3 +162,30 @@ if (document.readyState === 'loading') {
 } else {
     updateCartUI();
 }
+
+// Add item by ID (for order page)
+async function addItemById(itemId) {
+    try {
+        const response = await fetch(`${supabaseUrl}/rest/v1/menu_items?id=eq.${itemId}&select=*`, {
+            headers: {
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`
+            }
+        });
+        const items = await response.json();
+        if (items && items.length > 0) {
+            addToCart(items[0]);
+            showToast('Added to cart!');
+        }
+    } catch (error) {
+        console.error('Error adding item:', error);
+    }
+}
+
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#2E7D32;color:white;padding:12px 24px;border-radius:8px;z-index:9999;';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2000);
+}

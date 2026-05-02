@@ -125,7 +125,7 @@
                         <div class="order-item">
                             <span class="order-item-name">${item.name}</span>
                             <span class="order-item-price">$${parseFloat(item.price).toFixed(2)}</span>
-                            <button class="add-btn" onclick="addToCart(${JSON.stringify(item).replace(/"/g, '&quot;')})">Add</button>
+                            <button class="add-btn" onclick="addItemById('${item.id}')">Add</button>
                         </div>
                     `).join('');
                 }
