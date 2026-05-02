@@ -1073,6 +1073,13 @@ form {
     margin-top: 8px;
 }
 
+.form-or {
+    text-align: center;
+    color: var(--medium-gray);
+    margin: 15px 0;
+    font-size: 0.9rem;
+}
+
 /* Image Upload Zone */
 .image-upload-zone {
     border: 2px dashed var(--border-color);

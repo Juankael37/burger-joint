@@ -84,11 +84,10 @@ function initAdminEventListeners() {
         if (this.value) {
             previewImg.src = this.value;
             preview.classList.add('show');
-        } else {
-            preview.classList.remove('show');
         }
     });
 
+    initImageUpload();
     initCategoryFilter();
 }
 
@@ -139,18 +138,26 @@ function handleImageFile(file) {
         return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        currentImageData = e.target.result;
+    // Upload to Supabase Storage
+    const uploadZone = document.getElementById('imageUploadZone');
+    uploadZone.style.opacity = '0.5';
+
+    supabaseClient.uploadImage(file).then(imageUrl => {
+        currentImageData = imageUrl;
         const imagePreview = document.getElementById('imagePreview');
         const previewImg = document.getElementById('previewImg');
         const uploadPlaceholder = document.querySelector('.upload-placeholder');
 
-        previewImg.src = currentImageData;
+        previewImg.src = imageUrl;
         imagePreview.classList.add('show');
         uploadPlaceholder.style.display = 'none';
-    };
-    reader.readAsDataURL(file);
+        uploadZone.style.opacity = '1';
+        showToast('Image uploaded!', 'success');
+    }).catch(error => {
+        console.error('Upload error:', error);
+        uploadZone.style.opacity = '1';
+        showToast('Failed to upload image', 'error');
+    });
 }
 
 function initCategoryFilter() {
@@ -231,6 +238,7 @@ function openModal(item = null) {
     if (item) {
         modalTitle.textContent = 'Edit Item';
         editingItemId = item.id;
+        currentImageData = item.image;
         document.getElementById('itemCategory').value = item.category;
         document.getElementById('itemName').value = item.name;
         document.getElementById('itemDescription').value = item.description || '';
@@ -272,10 +280,11 @@ async function saveItem(e) {
     const price = parseFloat(document.getElementById('itemPrice').value);
     const status = document.getElementById('itemStatus').checked ? 'published' : 'draft';
 
-    const imageUrl = document.getElementById('itemImageUrl').value;
+    // Use uploaded image (Supabase Storage) or fall back to URL input
+    const imageUrl = currentImageData || document.getElementById('itemImageUrl').value;
 
     if (!imageUrl) {
-        showToast('Please enter an image URL', 'error');
+        showToast('Please upload an image or enter URL', 'error');
         return;
     }
 

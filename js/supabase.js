@@ -73,5 +73,26 @@ const supabaseClient = {
             body: JSON.stringify({ status: 'published' })
         });
         return response.json();
+    },
+
+    async uploadImage(file) {
+        const fileName = `${Date.now()}-${file.name}`;
+        const filePath = `menu/${fileName}`;
+
+        const response = await fetch(`${supabaseUrl}/storage/v1/object/menu-images/${filePath}`, {
+            method: 'POST',
+            headers: {
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`,
+                'Content-Type': file.type
+            },
+            body: file
+        });
+
+        if (!response.ok) {
+            throw new Error('Upload failed');
+        }
+
+        return `${supabaseUrl}/storage/v1/object/public/menu-images/${filePath}`;
     }
 };
