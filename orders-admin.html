@@ -120,22 +120,59 @@
         async function deleteAllOrders() {
             if (!confirm('Are you sure you want to delete ALL orders? This cannot be undone!')) return;
             
+            const confirm2 = confirm('Really delete ALL orders? This is final!');
+            if (!confirm2) return;
+            
             try {
-                for (const order of allOrders) {
-                    await fetch(`https://epbzzntbppyyxeisuvtr.supabase.co/rest/v1/orders?id=eq.${order.id}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwYnp6bnRicHB5eXhlaXN1dnRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NjY2MzIsImV4cCI6MjA5MzI0MjYzMn0.w8GcCOAOIhi7Yx7Rhc8i8qszemDI6i0An9qSlTUye2Y',
-                            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwYnp6bnRicHB5eXhlaXN1dnRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NjY2MzIsImV4cCI6MjA5MzI0MjYzMn0.w8GcCOAOIhi7Yx7Rhc8i8qszemDI6i0An9qSlTUye2Y'
-                        }
-                    });
+                // Delete all orders in one batch using filter
+                const response = await fetch('https://epbzzntbppyyxeisuvtr.supabase.co/rest/v1/orders', {
+                    method: 'DELETE',
+                    headers: {
+                        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwYnp6bnRicHB5eXhlaXN1dnRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NjY2MzIsImV4cCI6MjA5MzI0MjYzMn0.w8GcCOAOIhi7Yx7Rhc8i8qszemDI6i0An9qSlTUye2Y',
+                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwYnp6bnRicHB5eXhlaXN1dnRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NjY2MzIsImV4cCI6MjA5MzI0MjYzMn0.w8GcCOAOIhi7Yx7Rhc8i8qszemDI6i0An9qSlTUye2Y',
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({})
+                });
+                
+                if (response.ok) {
+                    alert('All orders deleted!');
+                    allOrders = [];
+                    renderOrders();
+                } else {
+                    throw new Error('Delete failed');
                 }
-                alert('All orders deleted!');
-                loadOrders();
             } catch (error) {
                 console.error('Error deleting orders:', error);
-                alert('Failed to delete orders');
+                // Fallback: try deleting one by one
+                alert('Trying alternative method...');
+                await deleteOrdersOneByOne();
             }
+        }
+        
+        async function deleteOrdersOneByOne() {
+            const apiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwYnp6bnRicHB5eXhlaXN1dnRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NjY2MzIsImV4cCI6MjA5MzI0MjYzMn0.w8GcCOAOIhi7Yx7Rhc8i8qszemDI6i0An9qSlTUye2Y';
+            const baseUrl = 'https://epbzzntbppyyxeisuvtr.supabase.co/rest/v1/orders';
+            
+            let deleted = 0;
+            for (const order of allOrders) {
+                try {
+                    const response = await fetch(`${baseUrl}?id=eq.${order.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'apikey': apiKey,
+                            'Authorization': `Bearer ${apiKey}`
+                        }
+                    });
+                    if (response.ok) deleted++;
+                } catch (e) {
+                    console.log('Error deleting:', order.id);
+                }
+            }
+            
+            alert(`Deleted ${deleted} orders!`);
+            loadOrders();
         }
         
         function filterOrders(status) {
