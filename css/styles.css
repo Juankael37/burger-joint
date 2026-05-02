@@ -1067,6 +1067,12 @@ form {
     border-color: var(--primary-red);
 }
 
+.form-hint {
+    font-size: 0.85rem;
+    color: var(--medium-gray);
+    margin-top: 8px;
+}
+
 /* Image Upload Zone */
 .image-upload-zone {
     border: 2px dashed var(--border-color);

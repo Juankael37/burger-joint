@@ -78,7 +78,17 @@ function initAdminEventListeners() {
         document.getElementById('statusLabel').textContent = this.checked ? 'Published' : 'Draft';
     });
 
-    initImageUpload();
+    document.getElementById('itemImageUrl').addEventListener('input', function() {
+        const preview = document.getElementById('imagePreview');
+        const previewImg = document.getElementById('previewImg');
+        if (this.value) {
+            previewImg.src = this.value;
+            preview.classList.add('show');
+        } else {
+            preview.classList.remove('show');
+        }
+    });
+
     initCategoryFilter();
 }
 
@@ -225,29 +235,23 @@ function openModal(item = null) {
         document.getElementById('itemName').value = item.name;
         document.getElementById('itemDescription').value = item.description || '';
         document.getElementById('itemPrice').value = item.price;
+        document.getElementById('itemImageUrl').value = item.image || '';
         document.getElementById('itemStatus').checked = item.status === 'published';
         document.getElementById('statusLabel').textContent = item.status === 'published' ? 'Published' : 'Draft';
 
         const imagePreview = document.getElementById('imagePreview');
         const previewImg = document.getElementById('previewImg');
-        const uploadPlaceholder = document.querySelector('.upload-placeholder');
-
-        currentImageData = item.image;
         previewImg.src = item.image;
-        imagePreview.classList.add('show');
-        uploadPlaceholder.style.display = 'none';
+        if (item.image) {
+            imagePreview.classList.add('show');
+        }
     } else {
         modalTitle.textContent = 'Add New Item';
         editingItemId = null;
         form.reset();
-        currentImageData = null;
-
-        const imagePreview = document.getElementById('imagePreview');
-        const uploadPlaceholder = document.querySelector('.upload-placeholder');
-        imagePreview.classList.remove('show');
-        uploadPlaceholder.style.display = 'flex';
         document.getElementById('itemStatus').checked = false;
         document.getElementById('statusLabel').textContent = 'Draft';
+        document.getElementById('imagePreview').classList.remove('show');
     }
 
     modal.classList.add('show');
@@ -268,8 +272,10 @@ async function saveItem(e) {
     const price = parseFloat(document.getElementById('itemPrice').value);
     const status = document.getElementById('itemStatus').checked ? 'published' : 'draft';
 
-    if (!currentImageData) {
-        showToast('Please upload an image', 'error');
+    const imageUrl = document.getElementById('itemImageUrl').value;
+
+    if (!imageUrl) {
+        showToast('Please enter an image URL', 'error');
         return;
     }
 
@@ -280,7 +286,7 @@ async function saveItem(e) {
                 name,
                 description,
                 price,
-                image: currentImageData,
+                image: imageUrl,
                 status
             });
             showToast('Item updated successfully', 'success');
@@ -291,7 +297,7 @@ async function saveItem(e) {
                 name,
                 description,
                 price,
-                image: currentImageData,
+                image: imageUrl,
                 status
             };
             await supabaseClient.addMenuItem(newItem);
