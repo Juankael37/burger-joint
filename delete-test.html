@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete Test</title>
+</head>
+<body>
+    <h1>Test Delete All Orders</h1>
+    <button onclick="testDelete()" style="padding: 20px; font-size: 1.2rem; background: red; color: white;">Delete All Orders</button>
+    <pre id="result" style="background: #f0f0f0; padding: 20px; margin-top: 20px;"></pre>
+    
+    <script>
+        const apiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwYnp6bnRicHB5eXhlaXN1dnRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NjY2MzIsImV4cCI6MjA5MzI0MjYzMn0.w8GcCOAOIhi7Yx7Rhc8i8qszemDI6i0An9qSlTUye2Y';
+        const baseUrl = 'https://epbzzntbppyyxeisuvtr.supabase.co/rest/v1/orders';
+        
+        async function testDelete() {
+            const result = document.getElementById('result');
+            result.textContent = 'Starting...\n';
+            
+            // First get all orders
+            const getResp = await fetch(baseUrl + '?select=id', {
+                headers: { 'apikey': apiKey, 'Authorization': `Bearer ${apiKey}` }
+            });
+            const orders = await getResp.json();
+            result.textContent += `Found ${orders.length} orders\n`;
+            
+            // Delete each one
+            for (const order of orders) {
+                result.textContent += `Deleting ${order.id}...`;
+                
+                const delResp = await fetch(baseUrl + '?id=eq.' + order.id, {
+                    method: 'DELETE',
+                    headers: { 
+                        'apikey': apiKey, 
+                        'Authorization': `Bearer ${apiKey}`
+                    }
+                });
+                
+                result.textContent += ` Status: ${delResp.status}\n`;
+                
+                if (!delResp.ok) {
+                    const errText = await delResp.text();
+                    result.textContent += ` Error: ${errText}\n`;
+                }
+            }
+            
+            result.textContent += '\nDone!';
+        }
+    </script>
+</body>
+</html>
