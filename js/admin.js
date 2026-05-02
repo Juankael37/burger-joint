@@ -76,10 +76,12 @@ function toggleItemUnavailable(itemId, branchId) {
     const item = menuItems.find(i => i.id === itemId);
     if (!item) return;
     
-    const unavailable = item.unavailable_at_branches || [];
-    const isUnavailable = unavailable.includes(branchId);
+    const checkbox = document.querySelector(`input[onchange="toggleItemUnavailable('${itemId}', '${branchId}')"]`);
+    if (!checkbox) return;
     
-    supabaseClient.toggleItemAvailability(itemId, branchId, !isUnavailable).then(() => {
+    const makeUnavailable = !checkbox.checked;
+    
+    supabaseClient.toggleItemAvailability(itemId, branchId, makeUnavailable).then(() => {
         loadAdminItems();
     });
 }
