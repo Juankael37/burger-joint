@@ -5,6 +5,12 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     initLogin();
+    
+    window.addEventListener('message', function(event) {
+        if (event.data && event.data.type === 'branchUpdated') {
+            loadBranches();
+        }
+    });
 });
 
 let menuItems = [];
