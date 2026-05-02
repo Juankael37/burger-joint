@@ -105,8 +105,77 @@
     </div>
 
     <script src="js/supabase.js"></script>
-    <script src="js/orders.js"></script>
     <script>
+        // Cart functions directly in page
+        let cart = JSON.parse(localStorage.getItem('bigBunsCart')) || [];
+        
+        function addToCart(item) {
+            const existingItem = cart.find(i => i.name === item.name);
+            if (existingItem) {
+                existingItem.qty += 1;
+            } else {
+                cart.push({ ...item, qty: 1 });
+            }
+            localStorage.setItem('bigBunsCart', JSON.stringify(cart));
+            updateCartUI();
+            alert(item.name + ' added to cart!');
+        }
+        
+        function updateCartUI() {
+            const cartCount = document.getElementById('cartCount');
+            const cartItems = document.getElementById('cartItems');
+            const cartTotal = document.getElementById('cartTotal');
+            
+            let count = cart.reduce((sum, item) => sum + item.qty, 0);
+            let total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            
+            if (cartCount) cartCount.textContent = '(' + count + ')';
+            
+            if (cartItems) {
+                if (cart.length === 0) {
+                    cartItems.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
+                } else {
+                    cartItems.innerHTML = cart.map(item => `
+                        <div class="cart-item">
+                            <div class="cart-item-info">
+                                <span class="cart-item-name">${item.name}</span>
+                                <span class="cart-item-price">₱${item.price.toFixed(2)}</span>
+                            </div>
+                            <div class="cart-item-controls">
+                                <button onclick="changeQty('${item.name}', -1)">-</button>
+                                <span>${item.qty}</span>
+                                <button onclick="changeQty('${item.name}', 1)">+</button>
+                                <button class="remove-btn" onclick="removeItem('${item.name}')">×</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+            
+            if (cartTotal) cartTotal.textContent = '₱' + total.toFixed(2);
+        }
+        
+        function changeQty(name, delta) {
+            const item = cart.find(i => i.name === name);
+            if (item) {
+                item.qty += delta;
+                if (item.qty <= 0) {
+                    cart = cart.filter(i => i.name !== name);
+                }
+                localStorage.setItem('bigBunsCart', JSON.stringify(cart));
+                updateCartUI();
+            }
+        }
+        
+        function removeItem(name) {
+            cart = cart.filter(i => i.name !== name);
+            localStorage.setItem('bigBunsCart', JSON.stringify(cart));
+            updateCartUI();
+        }
+        
+        // Initialize cart UI
+        updateCartUI();
+        
         // Fallback menu data - matching actual menu
         const defaultMenuItems = [
             // Burgers
