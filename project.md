@@ -2,10 +2,59 @@
 
 ## Project Overview
 - **Project Name**: Big Buns Burger
-- **Type**: Portfolio demo restaurant website
+- **Type**: Multi-branch restaurant web application
 - **Tech Stack**: HTML5, CSS3, Vanilla JavaScript, Supabase (Database & Storage)
-- **Core Functionality**: Public restaurant site with hero, about, menu, contact sections + secret admin dashboard for menu management
-- **Target Users**: Restaurant customers (public), Business owner (admin)
+- **Core Functionality**: Branch selection, ordering system, admin dashboard with per-branch menu availability
+- **Target Users**: Restaurant customers (public), Branch staff (admin)
+
+---
+
+## Multi-Branch Feature
+
+### Database Schema
+Run in Supabase SQL Editor:
+```sql
+-- Create branches table
+CREATE TABLE IF NOT EXISTS branches (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  location TEXT,
+  address TEXT,
+  phone TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Insert sample branches
+INSERT INTO branches (name, slug, location, address, phone) VALUES
+('Main Branch', 'main', 'Downtown', '123 Burger Street, Foodville, CA', '(555) 123-4567'),
+('North Branch', 'north', 'North District', '456 North Ave, Foodville, CA', '(555) 234-5678'),
+('South Branch', 'south', 'South District', '789 South Blvd, Foodville, CA', '(555) 345-6789');
+
+-- Add branch_id to orders
+ALTER TABLE orders ADD COLUMN branch_id UUID REFERENCES branches(id);
+
+-- Add availability column (TEXT array for branch slugs)
+ALTER TABLE menu_items ADD COLUMN unavailable_at_branches TEXT[];
+```
+
+### URL Structure
+| Page | URL |
+|------|-----|
+| Branch Selection | `/` (home page) |
+| Main Branch Order | `/order.html?branch=main` |
+| North Branch Order | `/order.html?branch=north` |
+| Admin (All) | `/admin.html` |
+| Admin (Branch Filter) | `/orders-admin.html?branch=main` |
+
+### Features Implemented
+- [x] Branch selection modal on landing page
+- [x] Branch parameter in order page URL
+- [x] Orders saved with branch_id
+- [x] Admin branch filter dropdown
+- [x] Per-branch item availability toggle
+- [ ] Toggle switch needs testing after SQL column added
 
 ---
 
@@ -19,11 +68,23 @@
 - About section (two-column: story + photos grid)
 - Menu section (categorized cards, filterable)
 - Contact section (info + hours + map placeholder)
+- Branch selection modal (NEW)
 - Footer (copyright + social links)
 
-**Admin Page (admin.html)**
-- Login screen (password protected)
-- Dashboard with sidebar (categories) + main area (items grid) + preview panel
+**Order Page (order.html)**
+- Branch badge display
+- Menu categories with Add buttons
+- Cart sidebar (sticky on desktop)
+- Mobile sticky checkout button
+
+**Checkout (checkout.html)**
+- Order summary
+- Customer name input
+- Success page with order number + branch info
+
+**Admin Pages**
+- admin.html: Menu management + branch availability toggle
+- orders-admin.html: Orders list with branch filter
 
 ### Responsive Breakpoints
 - Desktop: > 1024px
@@ -62,7 +123,13 @@
 **Navigation**
 - Logo (left)
 - Links: Home, About, Menu, Contact
+- Order Now button (opens branch modal)
 - Mobile: hamburger menu with slide-out drawer
+
+**Branch Selection Modal**
+- Modal with branch cards
+- Each card shows name, location, address, phone
+- Click navigates to order.html?branch={slug}
 
 **Hero**
 - Full-screen background image (burger/fries themed)
@@ -77,9 +144,16 @@
 - Price (red, bold)
 - Hover: subtle lift effect
 
+**Order Page**
+- Branch badge (shows current branch)
+- Menu categories with Add buttons
+- Cart sidebar with quantity controls
+- Checkout button
+
 **Admin Item Cards**
 - Thumbnail (150x150)
 - Name + category
+- Branch availability toggle (NEW)
 - Edit/Delete buttons
 - Status badge (Draft/Published)
 
@@ -95,40 +169,76 @@
 ### Public Page Features
 1. **Smooth Scroll Navigation** - Click nav links to scroll to sections
 2. **Mobile Menu** - Hamburger toggle for mobile
-3. **Menu Categories** - Filter menu by category (Burgers, Hot Dogs, Sides, Drinks)
-4. **Menu Data Loading** - Load from localStorage, fallback to sample data
+3. **Branch Selection** - Modal to select ordering branch
+4. **Menu Categories** - Filter menu by category (Burgers, Hot Dogs, Sides, Drinks)
+5. **Menu Data Loading** - Load from Supabase with per-branch filtering
+
+### Order Flow Features
+1. **Branch Parameter** - Read from URL (?branch=main)
+2. **Branch Badge** - Display current branch on order page
+3. **Cart Management** - Add/remove items, adjust quantities
+4. **Checkout** - Enter pickup name, place order
+5. **Success** - Show order number + branch info
+6. **Branches Data** - Save branch_id with each order
 
 ### Admin Dashboard Features
 1. **Password Protection** - Simple password check ("admin")
 2. **Dashboard View** - Grid of all menu items
-3. **Add New Item** - Modal form with:
+3. **Branch Filter** - Dropdown to select branch for availability
+4. **Branch Availability Toggle** - Mark items available/unavailable per branch
+5. **Add New Item** - Modal form with:
    - Category dropdown
    - Item name input
    - Description textarea
    - Price input
    - Drag-drop image upload
    - Save as draft button
-4. **Edit Item** - Click to edit existing item
-5. **Delete Item** - Confirmation dialog before delete
-6. **Image Upload** - Drag-drop or click to browse
-7. **Preview Panel** - Live preview of menu changes
-8. **Publish** - Sync draft changes to public menu
-9. **Supabase Persistence** - Data and images saved in Supabase (migrated from LocalStorage)
+6. **Edit Item** - Click to edit existing item
+7. **Delete Item** - Confirmation dialog before delete
+8. **Image Upload** - Drag-drop or click to browse
+9. **Preview Panel** - Live preview of menu changes
+10. **Publish** - Sync draft changes to public menu
+11. **Supabase Persistence** - Data and images saved in Supabase
+
+### Orders Admin Features
+1. **Branch Filter** - Filter orders by branch
+2. **Status Updates** - Mark pending/claimed/completed
+3. **Search** - Search by order number
 
 ### Data Structure
 ```javascript
+// Menu Item
 {
-  items: [
-    {
-      id: "unique-id",
-      category: "Burgers",
-      name: "Classic Burger",
-      description: "Lettuce, tomato, pickles...",
-      price: 9.49,
-      image: "base64-string-or-url",
-      status: "published" | "draft"
-    }
-  ]
+  id: "unique-id",
+  category: "Burgers",
+  name: "Classic Burger",
+  description: "Lettuce, tomato, pickles...",
+  price: 9.49,
+  image: "url",
+  status: "published" | "draft",
+  unavailable_at_branches: ["north"] // Array of branch slugs where unavailable
+}
+
+// Order
+{
+  id: "unique-id",
+  items: [{name: "Classic Burger", price: 9.49, qty: 1}],
+  total: 9.49,
+  pickup_name: "John",
+  order_number: 1234,
+  branch_id: "branch-uuid",
+  status: "pending" | "claimed" | "completed"
+}
+
+// Branch
+{
+  id: "uuid",
+  name: "Main Branch",
+  slug: "main",
+  location: "Downtown",
+  address: "123 Burger Street",
+  phone: "(555) 123-4567",
+  is_active: true
 }
 ```
 
@@ -139,13 +249,18 @@
 restaurant-website/
 ├── project.md           (this file)
 ├── index.html          (public page)
-├── admin.html          (admin dashboard)
+├── order.html         (ordering page)
+├── checkout.html     (checkout page)
+├── admin.html        (menu admin)
+├── orders-admin.html (orders admin)
 ├── css/
-│   └── styles.css      (all styles)
+│   └── styles.css  (all styles)
 ├── js/
-│   ├── app.js          (public page logic)
-│   └── admin.js        (admin dashboard logic)
-└── assets/             (placeholder directory)
+│   ├── supabase.js (API client)
+│   ├── app.js    (public page logic)
+│   ├── admin.js  (admin dashboard logic)
+│   └── orders.js (orders admin logic)
+└── supabase-mcp/    (helper scripts)
 ```
 
 ---
@@ -214,9 +329,32 @@ restaurant-website/
 
 ---
 
+## Current Status & Pending Tasks
+
+### Completed
+- [x] Base restaurant website with hero, about, menu, contact
+- [x] Admin dashboard with CRUD operations
+- [x] Supabase integration for data persistence
+- [x] Image upload to Supabase Storage
+- [x] Multi-branch feature (branch selection, orders with branch_id)
+- [x] Admin branch filter for orders
+- [x] Per-branch item availability toggle (needs DB column)
+
+### Pending
+- [ ] Fix toggle switch - needs `unavailable_at_branches` TEXT[] column in Supabase
+- [ ] Test toggle makes items unavailable for specific branches
+- [ ] Test order page filters unavailable items
+
+### Known Issues
+- Toggle switch error: `Could not find the 'unavailable_at_branches' column` - need to add column to Supabase
+- Run SQL: `ALTER TABLE menu_items ADD COLUMN unavailable_at_branches TEXT[];`
+
+---
+
 ## Notes
+- Uses slugs (main, north, south) for branch identification in unavailable_at_branches
+- Orders saved with branch_id (UUID from branches table)
+- Branch dropdown values stored as branch IDs (UUIDs)
 - Demo project for portfolio purposes
 - Uses placeholder images from Unsplash
-- Supabase used for database and image storage persistence
-  - Note: Image uploads require RLS policies (`INSERT`, `SELECT`, `UPDATE`, `DELETE`) on the `menu-images` bucket to be set manually in the Supabase Dashboard.
 - Simple client-side password (not secure for production)
