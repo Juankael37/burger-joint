@@ -189,3 +189,9 @@ function showToast(message) {
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2000);
 }
+
+// Direct add function for onclick
+window.addItemDirect = function(name, price) {
+    addToCart({name: name, price: price});
+    showToast('Added to cart!');
+};

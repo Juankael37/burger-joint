@@ -156,19 +156,10 @@
                     <div class="order-item">
                         <span class="order-item-name">${item.name}</span>
                         <span class="order-item-price">₱${parseFloat(item.price).toFixed(2)}</span>
-                        <button class="add-btn" data-name="${item.name}" data-price="${item.price}">Add</button>
+                        <button class="add-btn" onclick="window.addItemDirect('${item.name}', ${item.price})">Add</button>
                     </div>
                 `).join('');
             }
-            
-            // Add click handlers after rendering
-            document.querySelectorAll('.add-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const name = this.getAttribute('data-name');
-                    const price = parseFloat(this.getAttribute('data-price'));
-                    addToCart({name: name, price: price});
-                });
-            });
         }
         
         function goToCheckout() {
