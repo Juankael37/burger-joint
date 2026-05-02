@@ -38,8 +38,10 @@ async function loadBranchesForAdmin() {
                 // Also store by slug for lookup
                 if (branch.slug) branchesData[branch.slug] = branch;
                 const option = document.createElement('option');
-                option.value = branch.id;
+                option.value = branch.slug;
                 option.textContent = branch.name;
+                branchesData[branch.id] = branch;
+                branchesData[branch.slug] = branch;
                 select.appendChild(option);
             });
         } else {
@@ -55,8 +57,9 @@ function loadFallbackBranches() {
     const select = document.getElementById('adminBranchSelect');
     fallbackBranches.forEach(branch => {
         branchesData[branch.id] = branch;
+        branchesData[branch.slug] = branch;
         const option = document.createElement('option');
-        option.value = branch.id;
+        option.value = branch.slug;
         option.textContent = branch.name;
         select.appendChild(option);
     });
@@ -74,15 +77,15 @@ function isItemUnavailableAtBranch(item, branchId) {
     return unavailable.includes(branchId);
 }
 
-function toggleItemAvailability(itemId, branchId) {
+function toggleItemAvailability(itemId, branchSlug) {
     const item = menuItems.find(i => i.id === itemId);
     if (!item) return;
     
     const unavailable = item.unavailable_at_branches || [];
-    const isCurrentlyUnavailable = unavailable.includes(branchId);
+    const isCurrentlyUnavailable = unavailable.includes(branchSlug);
     const makeUnavailable = !isCurrentlyUnavailable;
     
-    supabaseClient.toggleItemAvailability(itemId, branchId, makeUnavailable).then(() => {
+    supabaseClient.toggleItemAvailability(itemId, branchSlug, makeUnavailable).then(() => {
         loadAdminItems();
     });
 }
@@ -309,9 +312,9 @@ function initCategoryFilter() {
 function renderAdminItems() {
     const itemsGrid = document.getElementById('itemsGrid');
 
-    let filteredItems = menuItems;
+    let filteredItems = [...menuItems].sort((a, b) => a.name.localeCompare(b.name));
     if (currentFilter !== 'all') {
-        filteredItems = menuItems.filter(item => item.category === currentFilter);
+        filteredItems = filteredItems.filter(item => item.category === currentFilter);
     }
 
     if (!filteredItems || filteredItems.length === 0) {
