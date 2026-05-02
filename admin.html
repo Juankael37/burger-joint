@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | The Burger Joint</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="admin-body">
+    <!-- Login Screen -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-box">
+            <div class="login-logo">&#127828;</div>
+            <h1>Admin Login</h1>
+            <p>Enter password to access the dashboard</p>
+            <form id="loginForm">
+                <input type="password" id="passwordInput" placeholder="Enter password" required>
+                <button type="submit" class="btn btn-primary btn-full">Login</button>
+            </form>
+            <p class="login-error" id="loginError">Incorrect password. Try again.</p>
+            <a href="index.html" class="back-link">&larr; Back to Website</a>
+        </div>
+    </div>
+
+    <!-- Dashboard (Hidden until logged in) -->
+    <div class="admin-dashboard" id="dashboard" style="display: none;">
+        <!-- Admin Header -->
+        <header class="admin-header">
+            <div class="admin-header-content">
+                <div class="admin-logo">
+                    <span class="logo-icon">&#127828;</span>
+                    <span>The Burger Joint</span>
+                </div>
+                <div class="admin-actions">
+                    <button class="btn btn-outline" id="previewBtn">&#128065; Preview</button>
+                    <button class="btn btn-primary" id="publishBtn">&#128227; Go Live</button>
+                    <a href="index.html" class="btn btn-secondary" target="_blank">View Site</a>
+                    <button class="btn btn-danger" id="logoutBtn">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Admin Main Content -->
+        <div class="admin-main">
+            <!-- Sidebar -->
+            <aside class="admin-sidebar">
+                <h3>Categories</h3>
+                <ul class="category-filter">
+                    <li class="active" data-category="all">All Items</li>
+                    <li data-category="Burgers">Burgers</li>
+                    <li data-category="Hot Dogs">Hot Dogs</li>
+                    <li data-category="Sides">Sides</li>
+                    <li data-category="Drinks">Drinks</li>
+                </ul>
+                <div class="sidebar-stats">
+                    <h4>Draft Items</h4>
+                    <p class="draft-count" id="draftCount">0</p>
+                    <h4>Published</h4>
+                    <p class="published-count" id="publishedCount">0</p>
+                </div>
+                <button class="btn btn-secondary btn-full" id="resetDataBtn" style="margin-top: 20px;">Reset Demo Data</button>
+            </aside>
+
+            <!-- Items Grid -->
+            <main class="admin-content">
+                <div class="content-header">
+                    <h2>Menu Items</h2>
+                    <button class="btn btn-primary" id="addItemBtn">+ Add Item</button>
+                </div>
+                <div class="items-grid" id="itemsGrid">
+                    <!-- Items loaded from JavaScript -->
+                </div>
+            </main>
+
+            <!-- Preview Panel -->
+            <aside class="preview-panel" id="previewPanel">
+                <div class="preview-header">
+                    <h3>Live Preview</h3>
+                    <button class="close-preview" id="closePreview">&times;</button>
+                </div>
+                <div class="preview-content" id="previewContent">
+                    <p class="preview-empty">Add items to see preview</p>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal" id="itemModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add New Item</h2>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <form id="itemForm">
+                <input type="hidden" id="itemId">
+                <div class="form-group">
+                    <label for="itemCategory">Category</label>
+                    <select id="itemCategory" required>
+                        <option value="">Select category</option>
+                        <option value="Burgers">Burgers</option>
+                        <option value="Hot Dogs">Hot Dogs</option>
+                        <option value="Sides">Sides</option>
+                        <option value="Drinks">Drinks</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="itemName">Item Name</label>
+                    <input type="text" id="itemName" placeholder="e.g., Classic Burger" required>
+                </div>
+                <div class="form-group">
+                    <label for="itemDescription">Description</label>
+                    <textarea id="itemDescription" rows="3" placeholder="Describe the item..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="itemPrice">Price ($)</label>
+                    <input type="number" id="itemPrice" step="0.01" min="0" placeholder="9.99" required>
+                </div>
+                <div class="form-group">
+                    <label>Image</label>
+                    <div class="image-upload-zone" id="imageUploadZone">
+                        <div class="upload-placeholder">
+                            <span class="upload-icon">&#128247;</span>
+                            <p>Drag & drop image here or click to browse</p>
+                        </div>
+                        <input type="file" id="itemImage" accept="image/*" hidden>
+                        <div class="image-preview" id="imagePreview">
+                            <img id="previewImg" src="" alt="Preview">
+                            <button type="button" class="remove-image" id="removeImage">&times;</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <div class="status-toggle">
+                        <label class="switch">
+                            <input type="checkbox" id="itemStatus">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="statusLabel">Draft</span>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>Confirm Delete</h2>
+                <button class="modal-close" id="closeDeleteModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="deleteItemName"></strong>?</p>
+                <p class="warning-text">This action cannot be undone.</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="cancelDeleteBtn">Cancel</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span class="toast-message" id="toastMessage"></span>
+    </div>
+
+    <script src="js/supabase.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
