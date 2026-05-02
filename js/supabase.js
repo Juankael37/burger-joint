@@ -12,6 +12,16 @@ const supabaseClient = {
         return response.json();
     },
 
+    async getAllBranches() {
+        const response = await fetch(`${supabaseUrl}/rest/v1/branches?order=name`, {
+            headers: {
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`
+            }
+        });
+        return response.json();
+    },
+
     async getMenuItems() {
         const response = await fetch(`${supabaseUrl}/rest/v1/menu_items?status=eq.published&order=category,created_at`, {
             headers: {

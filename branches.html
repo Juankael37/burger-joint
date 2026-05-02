@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Branch Settings - Big Buns Burger Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .settings-container { max-width: 900px; margin: 0 auto; padding: 30px; }
+        .settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .settings-header h1 { font-family: 'Poppins', sans-serif; color: var(--dark-gray); }
+        .back-btn { text-decoration: none; color: var(--primary-red); font-weight: 600; }
+        .add-branch-form { background: var(--white); padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        .add-branch-form h3 { margin: 0 0 20px 0; color: var(--dark-gray); }
+        .form-row { display: flex; gap: 15px; flex-wrap: wrap; }
+        .form-input { flex: 1; min-width: 200px; padding: 12px 15px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 1rem; }
+        .form-input:focus { outline: none; border-color: var(--primary-red); }
+        .branches-table { width: 100%; border-collapse: collapse; background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .branches-table th { background: var(--primary-red); color: var(--white); padding: 15px; text-align: left; font-weight: 600; }
+        .branches-table td { padding: 15px; border-bottom: 1px solid var(--border-color); }
+        .branches-table tr:last-child td { border-bottom: none; }
+        .branch-name-input { padding: 8px 12px; border: 2px solid var(--border-color); border-radius: 6px; font-size: 0.95rem; width: 200px; }
+        .branch-name-input:focus { border-color: var(--primary-red); outline: none; }
+        .btn-save { background: #4CAF50; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .btn-save:hover { background: #388E3C; }
+        .btn-edit { background: var(--secondary-color); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+        .btn-delete { background: #F44336; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+        .btn-edit:hover { background: #1976D2; }
+        .btn-delete:hover { background: #D32F2F; }
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        .status-badge.active { background: #E8F5E9; color: #2E7D32; }
+        .status-badge.inactive { background: #FFEBEE; color: #C62828; }
+    </style>
+</head>
+<body class="admin-body">
+    <div class="settings-container">
+        <div class="settings-header">
+            <h1>🌿 Branch Settings</h1>
+            <a href="admin.html" class="back-btn">← Back to Dashboard</a>
+        </div>
+
+        <div class="add-branch-form">
+            <h3>Add New Branch</h3>
+            <div class="form-row">
+                <input type="text" id="newBranchName" class="form-input" placeholder="Branch Name (e.g., Downtown Branch)">
+                <input type="text" id="newBranchLocation" class="form-input" placeholder="Location (e.g., Downtown District)">
+                <button class="btn btn-primary" onclick="createBranch()">Add Branch</button>
+            </div>
+        </div>
+
+        <table class="branches-table">
+            <thead>
+                <tr>
+                    <th>Branch Name</th>
+                    <th>Slug</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="branchesTableBody">
+                <tr><td colspan="5" style="text-align: center; color: var(--medium-gray);">Loading branches...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="toast" id="toast">
+        <span class="toast-message" id="toastMessage"></span>
+    </div>
+
+    <script src="js/supabase.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', loadBranches);
+
+        async function loadBranches() {
+            const tbody = document.getElementById('branchesTableBody');
+            const branches = await supabaseClient.getAllBranches();
+
+            if (!branches || branches.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--medium-gray);">No branches found. Add one above!</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = branches.map(branch => `
+                <tr>
+                    <td>
+                        <input type="text" class="branch-name-input" id="name-${branch.id}" value="${branch.name}">
+                    </td>
+                    <td><code>${branch.slug}</code></td>
+                    <td>${branch.location || '-'}</td>
+                    <td>
+                        <span class="status-badge ${branch.is_active ? 'active' : 'inactive'}">
+                            ${branch.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn-save" onclick="updateBranch('${branch.id}')">Save</button>
+                        <button class="btn-edit" onclick="toggleStatus('${branch.id}', ${!branch.is_active})">
+                            ${branch.is_active ? 'Deactivate' : 'Activate'}
+                        </button>
+                        <button class="btn-delete" onclick="deleteBranch('${branch.id}', '${branch.name}')">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function generateSlug(name) {
+            return name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim();
+        }
+
+        async function createBranch() {
+            const nameInput = document.getElementById('newBranchName');
+            const locationInput = document.getElementById('newBranchLocation');
+            const name = nameInput.value.trim();
+            const location = locationInput.value.trim();
+
+            if (!name) {
+                showToast('Please enter a branch name', 'error');
+                return;
+            }
+
+            const branch = {
+                name: name,
+                slug: generateSlug(name),
+                location: location || null,
+                address: '',
+                phone: '',
+                is_active: true
+            };
+
+            try {
+                await supabaseClient.addBranch(branch);
+                nameInput.value = '';
+                locationInput.value = '';
+                showToast('Branch created successfully!');
+                loadBranches();
+                refreshAdminBranches();
+            } catch (error) {
+                showToast('Failed to create branch', 'error');
+            }
+        }
+
+        async function updateBranch(branchId) {
+            const newName = document.getElementById(`name-${branchId}`).value.trim();
+            if (!newName) {
+                showToast('Branch name cannot be empty', 'error');
+                return;
+            }
+
+            try {
+                await supabaseClient.updateBranch(branchId, { name: newName });
+                showToast('Branch updated!');
+                refreshAdminBranches();
+            } catch (error) {
+                showToast('Failed to update branch', 'error');
+            }
+        }
+
+        async function toggleStatus(branchId, makeActive) {
+            try {
+                await supabaseClient.updateBranch(branchId, { is_active: makeActive });
+                showToast(`Branch ${makeActive ? 'activated' : 'deactivated'}!`);
+                loadBranches();
+                refreshAdminBranches();
+            } catch (error) {
+                showToast('Failed to update status', 'error');
+            }
+        }
+
+        async function deleteBranch(branchId, branchName) {
+            if (!confirm(`Delete branch "${branchName}"? This cannot be undone.`)) return;
+
+            try {
+                await supabaseClient.deleteBranch(branchId);
+                showToast('Branch deleted!');
+                loadBranches();
+                refreshAdminBranches();
+            } catch (error) {
+                showToast('Failed to delete branch', 'error');
+            }
+        }
+
+        async function refreshAdminBranches() {
+            if (window.opener && !window.opener.closed) {
+                window.opener.location.reload();
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.className = 'toast ' + type;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+</html>

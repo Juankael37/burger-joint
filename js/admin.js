@@ -601,7 +601,7 @@ async function createBranch() {
 
 async function renderBranchList() {
     const container = document.getElementById('branchesContainer');
-    const branches = await supabaseClient.getBranches();
+    const branches = await supabaseClient.getAllBranches();
 
     if (!branches || branches.length === 0) {
         container.innerHTML = '<p style="color: var(--medium-gray);">No branches found.</p>';
