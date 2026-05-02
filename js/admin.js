@@ -297,12 +297,7 @@ function renderAdminItems() {
 
     itemsGrid.innerHTML = filteredItems.map(item => {
         const unavailableAtBranch = currentAdminBranch ? isItemUnavailableAtBranch(item, currentAdminBranch) : false;
-        const branchToggleBtn = currentAdminBranch ? `
-            <button class="availability-btn ${unavailableAtBranch ? 'unavailable' : ''}" 
-                onclick="toggleItemUnavailable('${item.id}', '${currentAdminBranch}')">
-                ${unavailableAtBranch ? '❌ Unavailable' : '✓ Available'}
-            </button>
-        ` : '';
+        const branchName = branchesData[currentAdminBranch]?.name || 'Selected Branch';
         
         return `
         <div class="admin-item-card">
@@ -312,7 +307,19 @@ function renderAdminItems() {
                 <p class="admin-item-category">${item.category}</p>
                 <p class="admin-item-price">₱${parseFloat(item.price).toFixed(2)}</p>
                 <span class="admin-item-status ${item.status}">${item.status}</span>
-                ${branchToggleBtn}
+                ${currentAdminBranch ? `
+                <div class="branch-availability">
+                    <span class="availability-label">${branchName}:</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" ${!unavailableAtBranch ? 'checked' : ''} 
+                            onchange="toggleItemUnavailable('${item.id}', '${currentAdminBranch}')">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="availability-text ${unavailableAtBranch ? 'unavailable-text' : ''}">
+                        ${unavailableAtBranch ? 'Unavailable' : 'Available'}
+                    </span>
+                </div>
+                ` : ''}
                 <div class="admin-item-actions">
                     <button class="edit-btn" onclick="editItem('${item.id}')">Edit</button>
                     <button class="delete-btn" onclick="deleteItem('${item.id}')">Delete</button>
