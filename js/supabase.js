@@ -22,7 +22,7 @@ const supabaseClient = {
         return response.json();
     },
 
-    async getMenuItemsForBranch(branchId) {
+    async getMenuItemsForBranch(branchSlug) {
         const response = await fetch(
             `${supabaseUrl}/rest/v1/menu_items?status=eq.published&order=category,created_at`, 
             {
@@ -34,11 +34,11 @@ const supabaseClient = {
         );
         const items = await response.json();
         
-        if (!branchId) return items;
+        if (!branchSlug) return items;
         
         return items.filter(item => {
             const unavailable = item.unavailable_at_branches || [];
-            return !unavailable.includes(branchId);
+            return !unavailable.includes(branchSlug);
         });
     },
 
