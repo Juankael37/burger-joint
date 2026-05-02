@@ -70,11 +70,9 @@
     </div>
     
     <div class="checkout-page" id="successPage" style="display: none;">
-        <div class="success-message">
-            <h2>✅ Order Placed!</h2>
-            <p>Your order has been sent to the kitchen.</p>
-            <div class="order-number" id="confirmPickup"></div>
-            <p>Show this to the counter when you pick up your food.</p>
+        <div class="success-message" style="text-align: center; padding: 40px 20px;">
+            <h2 style="font-size: 2.5rem; color: #2E7D32; margin-bottom: 20px;">✅ Order Placed!</h2>
+            <div class="order-number" id="confirmPickup" style="background: var(--light-gray); padding: 20px; border-radius: 12px; margin: 20px 0;"></div>
             <a href="order.html" class="btn btn-primary" style="margin-top: 20px;">Order Again</a>
         </div>
     </div>
@@ -148,21 +146,23 @@
                 
                 if (!response.ok) throw new Error('Failed to create order');
                 
-                // Store order number for display
-                window.pendingOrderNumber = orderData.order_number;
-                
-                // Show success
+                // Show success immediately (even if order saves slowly)
                 document.getElementById('checkoutPage').style.display = 'none';
                 document.getElementById('successPage').style.display = 'block';
                 document.getElementById('confirmPickup').innerHTML = `
-                    <div style="font-size: 2rem; font-weight: bold; color: var(--primary-red);">Order #${orderData.order_number}</div>
-                    <div style="font-size: 1.2rem; margin-top: 10px;">Name: ${pickupName}</div>
+                    <div style="font-size: 2.5rem; font-weight: bold; color: var(--primary-red);">🎯 Order #${orderData.order_number}</div>
+                    <div style="font-size: 1.3rem; margin-top: 10px;">Name: ${pickupName}</div>
+                    <div style="font-size: 1.1rem; margin-top: 5px; color: var(--medium-gray);">Total: ₱${orderData.total.toFixed(2)}</div>
                 `;
                 
                 // Add instruction message
-                const instruction = document.createElement('p');
-                instruction.style.cssText = 'background: #FFF3E0; padding: 15px; border-radius: 8px; margin-top: 20px; font-size: 1rem;';
-                instruction.innerHTML = '📢 At the counter, tell staff your <strong>order number #' + orderData.order_number + '</strong> and your <strong>name: ' + pickupName + '</strong>';
+                const instruction = document.createElement('div');
+                instruction.style.cssText = 'background: #FFF3E0; padding: 20px; border-radius: 12px; margin-top: 25px; text-align: center;';
+                instruction.innerHTML = `
+                    <p style="font-size: 1.1rem; font-weight: 600; margin-bottom: 10px;">📢 At the counter, tell staff:</p>
+                    <p style="font-size: 1.3rem;">"My order number is <strong>#${orderData.order_number}</strong>"</p>
+                    <p style="font-size: 1rem; color: var(--medium-gray);">and my name is <strong>${pickupName}</strong></p>
+                `;
                 document.querySelector('.success-message').appendChild(instruction);
                 
                 // Clear cart
