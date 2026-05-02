@@ -169,5 +169,44 @@ const supabaseClient = {
         }
 
         return `${supabaseUrl}/storage/v1/object/public/menu-images/${filePath}`;
+    },
+
+    async addBranch(branch) {
+        const response = await fetch(`${supabaseUrl}/rest/v1/branches`, {
+            method: 'POST',
+            headers: {
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation'
+            },
+            body: JSON.stringify(branch)
+        });
+        return response.json();
+    },
+
+    async updateBranch(id, updates) {
+        const response = await fetch(`${supabaseUrl}/rest/v1/branches?id=eq.${id}`, {
+            method: 'PATCH',
+            headers: {
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation'
+            },
+            body: JSON.stringify(updates)
+        });
+        return response.json();
+    },
+
+    async deleteBranch(id) {
+        const response = await fetch(`${supabaseUrl}/rest/v1/branches?id=eq.${id}`, {
+            method: 'DELETE',
+            headers: {
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`
+            }
+        });
+        return response;
     }
 };

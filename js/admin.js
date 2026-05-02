@@ -546,3 +546,104 @@ function showToast(message, type = 'success') {
         toast.classList.remove('show');
     }, 3000);
 }
+
+function generateSlug(name) {
+    return name.toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+}
+
+function openBranchModal() {
+    document.getElementById('branchModal').style.display = 'flex';
+    renderBranchList();
+}
+
+function closeBranchModal() {
+    document.getElementById('branchModal').style.display = 'none';
+}
+
+async function createBranch() {
+    const nameInput = document.getElementById('newBranchName');
+    const locationInput = document.getElementById('newBranchLocation');
+    const name = nameInput.value.trim();
+    const location = locationInput.value.trim();
+
+    if (!name) {
+        showToast('Please enter a branch name', 'error');
+        return;
+    }
+
+    const slug = generateSlug(name);
+
+    try {
+        const branch = {
+            name: name,
+            slug: slug,
+            location: location || null,
+            address: '',
+            phone: '',
+            is_active: true
+        };
+
+        await supabaseClient.addBranch(branch);
+        nameInput.value = '';
+        locationInput.value = '';
+        showToast('Branch created successfully!');
+        await loadBranches();
+        renderBranchList();
+    } catch (error) {
+        console.error('Error creating branch:', error);
+        showToast('Failed to create branch', 'error');
+    }
+}
+
+async function renderBranchList() {
+    const container = document.getElementById('branchesContainer');
+    const branches = await supabaseClient.getBranches();
+
+    if (!branches || branches.length === 0) {
+        container.innerHTML = '<p style="color: var(--medium-gray);">No branches found.</p>';
+        return;
+    }
+
+    container.innerHTML = branches.map(branch => `
+        <div class="branch-item">
+            <div class="branch-info">
+                <span class="branch-name">${branch.name}</span>
+                <span class="branch-slug">@${branch.slug}</span>
+                ${branch.location ? `<span class="branch-location">📍 ${branch.location}</span>` : ''}
+            </div>
+            <div class="branch-actions">
+                <button class="btn btn-sm btn-secondary" onclick="editBranchName('${branch.id}', '${branch.name}')">✏️ Edit</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteBranch('${branch.id}', '${branch.name}')">🗑️</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function editBranchName(branchId, currentName) {
+    const newName = prompt('Enter new name for this branch:', currentName);
+    if (!newName || newName.trim() === currentName) return;
+
+    supabaseClient.updateBranch(branchId, { name: newName.trim() }).then(() => {
+        showToast('Branch name updated!');
+        loadBranches();
+        renderBranchList();
+    }).catch(err => {
+        showToast('Failed to update branch', 'error');
+    });
+}
+
+function deleteBranch(branchId, branchName) {
+    if (!confirm(`Delete branch "${branchName}"? This cannot be undone.`)) return;
+
+    supabaseClient.deleteBranch(branchId).then(() => {
+        showToast('Branch deleted!');
+        loadBranches();
+        renderBranchList();
+    }).catch(err => {
+        showToast('Failed to delete branch', 'error');
+    });
+}
