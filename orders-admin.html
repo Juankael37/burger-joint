@@ -153,7 +153,15 @@
             }
             
             alert(`Deleted ${deleted} orders. Failed: ${failed}`);
-            loadOrders();
+            
+            // Clear local array and reset
+            allOrders = [];
+            currentSearchQuery = '';
+            document.getElementById('orderSearch').value = '';
+            document.getElementById('searchResults').style.display = 'none';
+            
+            // Reload from server
+            await loadOrders();
         }
         
         function filterOrders(status) {
