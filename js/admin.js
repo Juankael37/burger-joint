@@ -328,7 +328,6 @@ function renderAdminItems() {
         </div>
     `}).join('');
 }
-}
 
 function updateStats() {
     const drafts = menuItems ? menuItems.filter(item => item.status === 'draft').length : 0;
