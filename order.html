@@ -107,30 +107,48 @@
     <script src="js/supabase.js"></script>
     <script src="js/orders.js"></script>
     <script>
+        // Fallback menu data
+        const defaultMenuItems = [
+            { id: 'b1', category: 'Burgers', name: 'Classic Burger', price: 9.49 },
+            { id: 'b2', category: 'Burgers', name: 'Bacon Burger', price: 10.99 },
+            { id: 'b3', category: 'Burgers', name: 'Cheeseburger', price: 9.99 },
+            { id: 'h1', category: 'Hot Dogs', name: 'Hot Dog', price: 6.49 },
+            { id: 'h2', category: 'Hot Dogs', name: 'Bacon Dog', price: 7.99 },
+            { id: 's1', category: 'Sides', name: 'Fries', price: 4.49 },
+            { id: 's2', category: 'Sides', name: 'Onion Rings', price: 5.49 },
+            { id: 'd1', category: 'Drinks', name: 'Soft Drink', price: 2.99 },
+            { id: 'd2', category: 'Drinks', name: 'Milkshake', price: 5.99 }
+        ];
+
         // Load menu items for ordering
         async function loadOrderMenu() {
+            let items = defaultMenuItems;
+            
             try {
-                const items = await supabaseClient.getMenuItems();
-                
-                const categories = {
-                    burgersGrid: 'Burgers',
-                    hotdogsGrid: 'Hot Dogs',
-                    sidesGrid: 'Sides',
-                    drinksGrid: 'Drinks'
-                };
-                
-                for (const [elementId, category] of Object.entries(categories)) {
-                    const categoryItems = items.filter(i => i.category === category);
-                    document.getElementById(elementId).innerHTML = categoryItems.map(item => `
-                        <div class="order-item">
-                            <span class="order-item-name">${item.name}</span>
-                            <span class="order-item-price">$${parseFloat(item.price).toFixed(2)}</span>
-                            <button class="add-btn" onclick="addItemById('${item.id}')">Add</button>
-                        </div>
-                    `).join('');
+                const fetchedItems = await supabaseClient.getMenuItems();
+                if (fetchedItems && fetchedItems.length > 0) {
+                    items = fetchedItems;
                 }
             } catch (error) {
-                console.error('Error loading menu:', error);
+                console.log('Using fallback menu');
+            }
+            
+            const categories = {
+                burgersGrid: 'Burgers',
+                hotdogsGrid: 'Hot Dogs',
+                sidesGrid: 'Sides',
+                drinksGrid: 'Drinks'
+            };
+            
+            for (const [elementId, category] of Object.entries(categories)) {
+                const categoryItems = items.filter(i => i.category === category);
+                document.getElementById(elementId).innerHTML = categoryItems.map(item => `
+                    <div class="order-item">
+                        <span class="order-item-name">${item.name}</span>
+                        <span class="order-item-price">$${parseFloat(item.price).toFixed(2)}</span>
+                        <button class="add-btn" onclick="addToCart({name:'${item.name}',price:${item.price}})">Add</button>
+                    </div>
+                `).join('');
             }
         }
         
