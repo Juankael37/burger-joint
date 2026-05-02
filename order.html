@@ -50,6 +50,47 @@
         @media (max-width: 768px) {
             .order-grid { grid-template-columns: 1fr; }
             .cart-sidebar { position: static; }
+            
+            .mobile-menu-btn {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 8px;
+            }
+            .mobile-menu-btn span {
+                display: block;
+                width: 25px;
+                height: 3px;
+                background: var(--white);
+                border-radius: 2px;
+            }
+            .nav-right {
+                display: flex;
+                flex-direction: column;
+                position: absolute;
+                top: 60px;
+                left: 0;
+                right: 0;
+                background: var(--primary-red);
+                padding: 20px;
+                gap: 15px;
+                transform: translateY(-100%);
+                opacity: 0;
+                pointer-events: none;
+                transition: all 0.3s ease;
+            }
+            .nav-right.open {
+                transform: translateY(0);
+                opacity: 1;
+                pointer-events: all;
+            }
+            .nav-right a {
+                color: var(--white);
+                font-size: 1.1rem;
+            }
         }
     </style>
 </head>
@@ -57,7 +98,12 @@
     <nav class="navbar scrolled">
         <div class="nav-container">
             <a href="index.html" class="logo">Big Buns Burger</a>
-            <div class="nav-right">
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="nav-right" id="navLinks">
                 <a href="index.html">Home</a>
                 <a href="order.html" class="active">Order</a>
             </div>
@@ -67,7 +113,16 @@
     <div class="order-page">
         <div class="order-header">
             <h1>🍔 Order Here</h1>
-            <p>Add items to your cart and checkout for pickup!</p>
+            <div class="order-notice">
+                <span>📍 Pay at Counter &bull; Pickup in Store</span>
+            </div>
+        </div>
+        
+        <!-- Mobile Sticky Cart Button -->
+        <div class="mobile-sticky-cart" id="mobileStickyCart">
+            <button class="btn btn-primary" onclick="goToCheckout()">
+                🛒 Checkout - <span id="mobileCartTotal">₱0.00</span>
+            </button>
         </div>
         
         <div class="order-grid">
@@ -154,6 +209,12 @@
             }
             
             if (cartTotal) cartTotal.textContent = '₱' + total.toFixed(2);
+            
+            // Update mobile sticky cart
+            const mobileCartTotal = document.getElementById('mobileCartTotal');
+            const mobileStickyCart = document.getElementById('mobileStickyCart');
+            if (mobileCartTotal) mobileCartTotal.textContent = '₱' + total.toFixed(2);
+            if (mobileStickyCart) mobileStickyCart.style.display = cart.length > 0 ? 'block' : 'none';
         }
         
         function changeQty(name, delta) {
@@ -243,6 +304,28 @@
         }
         
         loadOrderMenu();
+        
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const navLinks = document.getElementById('navLinks');
+        if (mobileMenuBtn && navLinks) {
+            mobileMenuBtn.addEventListener('click', () => {
+                navLinks.classList.toggle('open');
+            });
+            navLinks.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    navLinks.classList.remove('open');
+                });
+            });
+        }
+        
+        // Update mobile cart total
+        function updateMobileCartTotal() {
+            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            document.getElementById('mobileCartTotal').textContent = '₱' + total.toFixed(2);
+            const stickyCart = document.getElementById('mobileStickyCart');
+            stickyCart.style.display = cart.length > 0 ? 'block' : 'none';
+        }
     </script>
 </body>
 </html>

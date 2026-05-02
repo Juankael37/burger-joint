@@ -1553,3 +1553,44 @@ input:checked + .slider::before {
         opacity: 0;
     }
 }
+
+/* Mobile Sticky Cart Button */
+.mobile-sticky-cart {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--white);
+    padding: 12px 16px;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+    z-index: 1000;
+}
+
+.mobile-sticky-cart .btn {
+    width: 100%;
+    padding: 16px;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.order-notice {
+    background: rgba(255, 193, 7, 0.2);
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin-top: 10px;
+    display: inline-block;
+}
+
+.order-notice span {
+    color: #856404;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .order-page {
+        padding-bottom: 80px;
+    }
+}
