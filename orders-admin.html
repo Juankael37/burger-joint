@@ -128,12 +128,12 @@
                             ${items.map(item => `
                                 <div class="order-item-row">
                                     <span>${item.qty}x ${item.name}</span>
-                                    <span>$${(item.price * item.qty).toFixed(2)}</span>
+                                    <span>₱{(item.price * item.qty).toFixed(2)}</span>
                                 </div>
                             `).join('')}
                         </div>
                         
-                        <div class="order-total">Total: $${parseFloat(order.total).toFixed(2)}</div>
+                        <div class="order-total">Total: ₱${parseFloat(order.total).toFixed(2)}</div>
                         
                         <div class="order-status" style="text-align: center; margin-bottom: 10px; padding: 8px; background: ${getStatusColor(order.status)}; color: white; border-radius: 5px;">
                             ${order.status.toUpperCase()}

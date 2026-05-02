@@ -130,7 +130,7 @@ function updateCartUI() {
     
     if (cartCount) cartCount.textContent = getCartCount();
     if (cartItems) cartItems.innerHTML = renderCartItems();
-    if (cartTotal) cartTotal.textContent = '$' + getCartTotal().toFixed(2);
+    if (cartTotal) cartTotal.textContent = '₱' + getCartTotal().toFixed(2);
 }
 
 function renderCartItems() {
@@ -138,7 +138,7 @@ function renderCartItems() {
         <div class="cart-item">
             <div class="cart-item-info">
                 <span class="cart-item-name">${item.name}</span>
-                <span class="cart-item-price">$${item.price.toFixed(2)}</span>
+                <span class="cart-item-price">₱${item.price.toFixed(2)}</span>
             </div>
             <div class="cart-item-controls">
                 <button onclick="updateQuantity('${item.name}', -1)">-</button>
