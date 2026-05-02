@@ -63,8 +63,9 @@
     <div class="orders-admin">
         <div class="orders-header">
             <h1>📋 Orders</h1>
-            <div>
+            <div style="display: flex; gap: 10px; align-items: center;">
                 <button class="refresh-btn" onclick="loadOrders()">🔄 Refresh</button>
+                <button class="btn btn-danger" onclick="deleteAllOrders()" style="padding: 8px 15px; font-size: 0.9rem;">🗑️ Delete All</button>
                 <span class="auto-refresh">Auto-refreshs every 10s</span>
             </div>
         </div>
@@ -94,6 +95,7 @@
     <script>
         let allOrders = [];
         let currentFilter = 'all';
+        let currentSearchQuery = '';
         
         async function loadOrders() {
             try {
@@ -104,9 +106,35 @@
                     }
                 });
                 allOrders = await response.json();
-                renderOrders();
+                // Restore search if exists
+                if (currentSearchQuery) {
+                    searchByOrderNumber(currentSearchQuery);
+                } else {
+                    renderOrders();
+                }
             } catch (error) {
                 console.error('Error loading orders:', error);
+            }
+        }
+        
+        async function deleteAllOrders() {
+            if (!confirm('Are you sure you want to delete ALL orders? This cannot be undone!')) return;
+            
+            try {
+                for (const order of allOrders) {
+                    await fetch(`https://epbzzntbppyyxeisuvtr.supabase.co/rest/v1/orders?id=eq.${order.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwYnp6bnRicHB5eXhlaXN1dnRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NjY2MzIsImV4cCI6MjA5MzI0MjYzMn0.w8GcCOAOIhi7Yx7Rhc8i8qszemDI6i0An9qSlTUye2Y',
+                            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwYnp6bnRicHB5eXhlaXN1dnRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NjY2MzIsImV4cCI6MjA5MzI0MjYzMn0.w8GcCOAOIhi7Yx7Rhc8i8qszemDI6i0An9qSlTUye2Y'
+                        }
+                    });
+                }
+                alert('All orders deleted!');
+                loadOrders();
+            } catch (error) {
+                console.error('Error deleting orders:', error);
+                alert('Failed to delete orders');
             }
         }
         
@@ -119,6 +147,7 @@
         }
         
         function searchByOrderNumber(number) {
+            currentSearchQuery = number; // Save search query
             const searchBox = document.getElementById('orderSearch');
             const searchResults = document.getElementById('searchResults');
             const searchResultText = document.getElementById('searchResultText');
@@ -126,6 +155,7 @@
             
             if (!number || number.length < 1) {
                 searchResults.style.display = 'none';
+                currentSearchQuery = '';
                 renderOrders();
                 return;
             }
@@ -155,6 +185,7 @@
         }
         
         function clearSearch() {
+            currentSearchQuery = '';
             document.getElementById('orderSearch').value = '';
             document.getElementById('searchResults').style.display = 'none';
             renderOrders();
