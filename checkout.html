@@ -78,6 +78,7 @@
     </div>
 
     <script src="js/supabase.js"></script>
+    <script src="js/toast.js"></script>
     <script>
         // Load cart from localStorage
         let cart = JSON.parse(localStorage.getItem('bigBunsCart')) || [];
@@ -109,12 +110,12 @@
             const pickupName = document.getElementById('pickupName').value.trim();
             
             if (!pickupName) {
-                alert('Please enter your name or table number!');
+                toastWarning('Missing Info', 'Please enter your name or table number');
                 return;
             }
             
             if (cart.length === 0) {
-                alert('Your cart is empty!');
+                toastWarning('Cart Empty', 'Please add items to your cart first');
                 return;
             }
             
