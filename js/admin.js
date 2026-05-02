@@ -141,20 +141,41 @@ async function loadAdminItems() {
 }
 
 function initAdminEventListeners() {
-    document.getElementById('logoutBtn').addEventListener('click', logout);
-    document.getElementById('addItemBtn').addEventListener('click', () => openModal());
-    document.getElementById('closeModal').addEventListener('click', closeModal);
-    document.getElementById('cancelBtn').addEventListener('click', closeModal);
-    document.getElementById('itemForm').addEventListener('submit', saveItem);
-    document.getElementById('closePreview').addEventListener('click', togglePreview);
-    document.getElementById('publishBtn').addEventListener('click', publishAll);
-    document.getElementById('previewBtn').addEventListener('click', togglePreview);
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) logoutBtn.addEventListener('click', logout);
+    
+    const addItemBtn = document.getElementById('addItemBtn');
+    if (addItemBtn) addItemBtn.addEventListener('click', () => openModal());
+    
+    const closeModal = document.getElementById('closeModal');
+    if (closeModal) closeModal.addEventListener('click', closeModal);
+    
+    const cancelBtn = document.getElementById('cancelBtn');
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+    
+    const itemForm = document.getElementById('itemForm');
+    if (itemForm) itemForm.addEventListener('submit', saveItem);
+    
+    const closePreview = document.getElementById('closePreview');
+    if (closePreview) closePreview.addEventListener('click', togglePreview);
+    
+    const publishBtn = document.getElementById('publishBtn');
+    if (publishBtn) publishBtn.addEventListener('click', publishAll);
+    
+    const previewBtn = document.getElementById('previewBtn');
+    if (previewBtn) previewBtn.addEventListener('click', togglePreview);
 
-    document.getElementById('closeDeleteModal').addEventListener('click', closeDeleteModal);
-    document.getElementById('cancelDeleteBtn').addEventListener('click', closeDeleteModal);
-    document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+    const closeDeleteModal = document.getElementById('closeDeleteModal');
+    if (closeDeleteModal) closeDeleteModal.addEventListener('click', closeDeleteModal);
+    
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+    
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    if (confirmDeleteBtn) confirmDeleteBtn.addEventListener('click', confirmDelete);
 
-    document.getElementById('itemStatus').addEventListener('change', function() {
+    const itemStatus = document.getElementById('itemStatus');
+    if (itemStatus) itemStatus.addEventListener('change', function() {
         document.getElementById('statusLabel').textContent = this.checked ? 'Published' : 'Draft';
     });
 
