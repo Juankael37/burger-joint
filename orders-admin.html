@@ -127,37 +127,32 @@
             const baseUrl = 'https://epbzzntbppyyxeisuvtr.supabase.co/rest/v1/orders';
             
             let deleted = 0;
+            let failed = 0;
+            
             for (const order of allOrders) {
                 try {
-                    // Try DELETE first
-                    let response = await fetch(`${baseUrl}?id=eq.${order.id}`, {
+                    const response = await fetch(`${baseUrl}?id=eq.${order.id}`, {
                         method: 'DELETE',
                         headers: {
                             'apikey': apiKey,
-                            'Authorization': `Bearer ${apiKey}`
+                            'Authorization': `Bearer ${apiKey}`,
+                            'Prefer': 'return=minimal'
                         }
                     });
                     
-                    // If DELETE fails, try UPDATE to cancelled
-                    if (!response.ok) {
-                        response = await fetch(`${baseUrl}?id=eq.${order.id}`, {
-                            method: 'PATCH',
-                            headers: {
-                                'apikey': apiKey,
-                                'Authorization': `Bearer ${apiKey}`,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ status: 'cancelled' })
-                        });
+                    if (response.ok) {
+                        deleted++;
+                    } else {
+                        failed++;
+                        console.log('Failed to delete:', order.id, response.status);
                     }
-                    
-                    if (response.ok) deleted++;
                 } catch (e) {
-                    console.log('Error processing:', order.id, e);
+                    failed++;
+                    console.log('Error:', e);
                 }
             }
             
-            alert(`Deleted/Archived ${deleted} orders!`);
+            alert(`Deleted ${deleted} orders. Failed: ${failed}`);
             loadOrders();
         }
         
