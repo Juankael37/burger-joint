@@ -132,12 +132,13 @@ ordersList.innerHTML = filtered.map(order => {
                         </div>
                         
                         <div class="order-items-list">
-                            ${items.map(item => `
-                                <div class="order-item-row">
+                            ${items.map(item => {
+                                const itemTotal = item.price * item.qty;
+                                return `<div class="order-item-row">
                                     <span>${item.qty}x ${item.name}</span>
-                                    <span>₱${(item.price * item.qty).toFixed(2)}</span>
-                                </div>
-                            `).join('')}
+                                    <span>₱${itemTotal.toFixed(2)}</span>
+                                </div>`;
+                            }).join('')}
                         </div>
                         
                         <div class="order-total">Total: ₱${parseFloat(order.total).toFixed(2)}</div>
