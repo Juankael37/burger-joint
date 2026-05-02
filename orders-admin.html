@@ -118,10 +118,7 @@
         }
         
         async function deleteAllOrders() {
-            if (!confirm('Are you sure you want to delete ALL orders? This cannot be undone!')) return;
-            
-            const confirm2 = confirm('Really delete ALL orders? This is final!');
-            if (!confirm2) return;
+            if (!confirm('🗑️ Delete all orders? This cannot be undone.')) return;
             
             const apiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwYnp6bnRicHB5eXhlaXN1dnRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NjY2MzIsImV4cCI6MjA5MzI0MjYzMn0.w8GcCOAOIhi7Yx7Rhc8i8qszemDI6i0An9qSlTUye2Y';
             const baseUrl = 'https://epbzzntbppyyxeisuvtr.supabase.co/rest/v1/orders';
