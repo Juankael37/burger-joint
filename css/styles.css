@@ -797,7 +797,25 @@ input, select, textarea {
 
 .admin-actions {
     display: flex;
+    align-items: center;
     gap: 10px;
+}
+
+.branch-select {
+    padding: 10px 14px;
+    border: 2px solid var(--primary-red);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    background: var(--white);
+    cursor: pointer;
+    min-width: 160px;
+    color: var(--primary-red);
+}
+
+.branch-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.2);
 }
 
 .admin-main {
