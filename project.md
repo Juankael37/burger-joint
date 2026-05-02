@@ -3,7 +3,7 @@
 ## Project Overview
 - **Project Name**: The Burger Joint
 - **Type**: Portfolio demo restaurant website
-- **Tech Stack**: HTML5, CSS3, Vanilla JavaScript, LocalStorage
+- **Tech Stack**: HTML5, CSS3, Vanilla JavaScript, Supabase (Database & Storage)
 - **Core Functionality**: Public restaurant site with hero, about, menu, contact sections + secret admin dashboard for menu management
 - **Target Users**: Restaurant customers (public), Business owner (admin)
 
@@ -113,7 +113,7 @@
 6. **Image Upload** - Drag-drop or click to browse
 7. **Preview Panel** - Live preview of menu changes
 8. **Publish** - Sync draft changes to public menu
-9. **LocalStorage Persistence** - All data saved in browser
+9. **Supabase Persistence** - Data and images saved in Supabase (migrated from LocalStorage)
 
 ### Data Structure
 ```javascript
@@ -155,33 +155,33 @@ restaurant-website/
 ### Burgers
 | Name | Description | Price |
 |------|-------------|-------|
-| Classic Burger | Lettuce, tomato, pickles, onions, mustard, ketchup | $9.49 |
-| Bacon Burger | Classic + crispy bacon | $10.99 |
-| Little Cheeseburger | Smaller patty with cheese | $7.99 |
-| Bacon Cheeseburger | Bacon + cheese + all toppings | $11.99 |
-| Veggie Burger | Grilled mushrooms, onions, peppers, lettuce, tomato | $10.49 |
+| Classic Burger | Lettuce, tomato, pickles, onions, mustard, ketchup | ₱569.40 |
+| Bacon Burger | Classic + crispy bacon | ₱659.40 |
+| Little Cheeseburger | Smaller patty with cheese | ₱479.40 |
+| Bacon Cheeseburger | Bacon + cheese + all toppings | ₱719.40 |
+| Veggie Burger | Grilled mushrooms, onions, peppers, lettuce, tomato | ₱629.40 |
 
 ### Hot Dogs
 | Name | Description | Price |
 |------|-------------|-------|
-| Regular Hot Dog | All-beef hot dog in bun | $6.49 |
-| Bacon Dog | Hot dog wrapped in bacon | $7.99 |
-| Cheese Dog | Hot dog with melted cheese | $7.49 |
+| Regular Hot Dog | All-beef hot dog in bun | ₱389.40 |
+| Bacon Dog | Hot dog wrapped in bacon | ₱479.40 |
+| Cheese Dog | Hot dog with melted cheese | ₱449.40 |
 
 ### Sides
 | Name | Description | Price |
 |------|-------------|-------|
-| Little Fries | Hand-cut, fresh potatoes | $4.49 |
-| Regular Fries | Large serving of fries | $5.99 |
-| Cheese Fries | Fries topped with melted cheese | $7.49 |
-| Onion Rings | Beer-battered crispy rings | $5.49 |
+| Little Fries | Hand-cut, fresh potatoes | ₱269.40 |
+| Regular Fries | Large serving of fries | ₱359.40 |
+| Cheese Fries | Fries topped with melted cheese | ₱449.40 |
+| Onion Rings | Beer-battered crispy rings | ₱329.40 |
 
 ### Drinks
 | Name | Description | Price |
 |------|-------------|-------|
-| Small Drink | Choice of soda | $2.99 |
-| Large Drink | Large soda refillable | $3.49 |
-| Milkshake | Chocolate, vanilla, or strawberry | $5.99 |
+| Small Drink | Choice of soda | ₱179.40 |
+| Large Drink | Large soda refillable | ₱209.40 |
+| Milkshake | Chocolate, vanilla, or strawberry | ₱359.40 |
 
 ---
 
@@ -203,19 +203,20 @@ restaurant-website/
 - [ ] Mobile responsive on all breakpoints
 
 ### Admin Page
-- [ ] Password protection works
-- [ ] Can add new menu item with image
-- [ ] Can edit existing items
-- [ ] Can delete items with confirmation
-- [ ] Drag-drop image upload works
-- [ ] Preview shows draft changes
-- [ ] Publish syncs to public menu
-- [ ] Data persists after page refresh
+- [x] Password protection works
+- [x] Can add new menu item with image (Requires Supabase RLS policies to be set)
+- [x] Can edit existing items
+- [x] Can delete items with confirmation
+- [x] Drag-drop image upload works
+- [x] Preview shows draft changes
+- [x] Publish syncs to public menu
+- [x] Data persists after page refresh
 
 ---
 
 ## Notes
 - Demo project for portfolio purposes
 - Uses placeholder images from Unsplash
-- LocalStorage for data persistence (no backend required)
+- Supabase used for database and image storage persistence
+  - Note: Image uploads require RLS policies (`INSERT`, `SELECT`, `UPDATE`, `DELETE`) on the `menu-images` bucket to be set manually in the Supabase Dashboard.
 - Simple client-side password (not secure for production)

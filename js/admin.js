@@ -192,7 +192,7 @@ function renderAdminItems() {
             <div class="admin-item-content">
                 <h4 class="admin-item-name">${item.name}</h4>
                 <p class="admin-item-category">${item.category}</p>
-                <p class="admin-item-price">$${parseFloat(item.price).toFixed(2)}</p>
+                <p class="admin-item-price">₱${parseFloat(item.price).toFixed(2)}</p>
                 <span class="admin-item-status ${item.status}">${item.status}</span>
                 <div class="admin-item-actions">
                     <button class="edit-btn" onclick="editItem('${item.id}')">Edit</button>
@@ -225,7 +225,7 @@ function renderPreview() {
             <img src="${item.image}" alt="${item.name}">
             <p class="preview-item-name">${item.name}</p>
             <p class="preview-item-desc">${item.description ? item.description.substring(0, 50) : ''}...</p>
-            <p class="preview-item-price">$${parseFloat(item.price).toFixed(2)}</p>
+            <p class="preview-item-price">₱${parseFloat(item.price).toFixed(2)}</p>
         </div>
     `).join('');
 }

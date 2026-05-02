@@ -61,7 +61,7 @@ function renderMenuItems(items) {
                 <span class="menu-card-category">${item.category}</span>
                 <h3 class="menu-card-name">${item.name}</h3>
                 <p class="menu-card-description">${item.description}</p>
-                <p class="menu-card-price">$${parseFloat(item.price).toFixed(2)}</p>
+                <p class="menu-card-price">₱${parseFloat(item.price).toFixed(2)}</p>
             </div>
         </div>
     `).join('');
