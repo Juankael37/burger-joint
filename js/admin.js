@@ -72,14 +72,15 @@ function isItemUnavailableAtBranch(item, branchId) {
     return unavailable.includes(branchId);
 }
 
-function toggleItemUnavailable(itemId, branchId) {
+function toggleItemAvailability(itemId, branchId) {
     const item = menuItems.find(i => i.id === itemId);
     if (!item) return;
     
-    const checkbox = document.querySelector(`input[onchange="toggleItemUnavailable('${itemId}', '${branchId}')"]`);
+    const checkbox = document.querySelector(`input[data-item-id="${itemId}"][data-branch-id="${branchId}"]`);
     if (!checkbox) return;
     
-    const makeUnavailable = !checkbox.checked;
+    const isCurrentlyAvailable = checkbox.checked;
+    const makeUnavailable = !isCurrentlyAvailable;
     
     supabaseClient.toggleItemAvailability(itemId, branchId, makeUnavailable).then(() => {
         loadAdminItems();
@@ -312,9 +313,8 @@ function renderAdminItems() {
                 ${currentAdminBranch ? `
                 <div class="branch-availability">
                     <span class="availability-label">${branchName}:</span>
-                    <label class="toggle-switch">
-                        <input type="checkbox" ${!unavailableAtBranch ? 'checked' : ''} 
-                            onchange="toggleItemUnavailable('${item.id}', '${currentAdminBranch}')">
+                    <label class="toggle-switch" onclick="toggleItemAvailability('${item.id}', '${currentAdminBranch}')">
+                        <input type="checkbox" data-item-id="${item.id}" data-branch-id="${currentAdminBranch}" ${!unavailableAtBranch ? 'checked' : ''} readonly>
                         <span class="toggle-slider"></span>
                     </label>
                     <span class="availability-text ${unavailableAtBranch ? 'unavailable-text' : ''}">
@@ -329,6 +329,7 @@ function renderAdminItems() {
             </div>
         </div>
     `}).join('');
+}
 }
 
 function updateStats() {
