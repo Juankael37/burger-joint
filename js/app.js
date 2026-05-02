@@ -24,11 +24,26 @@ function initNavigation() {
 
     mobileMenuBtn.addEventListener('click', () => {
         navLinks.classList.toggle('open');
+        document.querySelector('.sidebar-backdrop')?.classList.toggle('active');
+    });
+
+    // Backdrop click closes sidebar and redirects to home
+    let backdrop = document.querySelector('.sidebar-backdrop');
+    if (!backdrop) {
+        backdrop = document.createElement('div');
+        backdrop.className = 'sidebar-backdrop';
+        document.body.appendChild(backdrop);
+    }
+    backdrop.addEventListener('click', () => {
+        navLinks.classList.remove('open');
+        backdrop.classList.remove('active');
+        window.location.href = 'index.html';
     });
 
     navLinks.querySelectorAll('a').forEach(link => {
         link.addEventListener('click', () => {
             navLinks.classList.remove('open');
+            backdrop.classList.remove('active');
         });
     });
 }
