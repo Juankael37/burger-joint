@@ -84,6 +84,13 @@
             <button onclick="clearSearch()" style="padding: 12px 20px; background: var(--light-gray); border: none; border-radius: 8px; cursor: pointer;">Clear</button>
         </div>
         
+        <div class="branch-filter" style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+            <label for="branchSelect" style="font-weight: 600;">Filter by Branch:</label>
+            <select id="branchSelect" onchange="filterByBranch(this.value)" style="padding: 10px 15px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; min-width: 180px;">
+                <option value="">All Branches</option>
+            </select>
+        </div>
+        
         <div class="search-results" id="searchResults" style="display: none; margin-bottom: 15px; padding: 15px; background: #E3F2FD; border-radius: 8px;">
             <strong>Search Result:</strong> <span id="searchResultText"></span>
         </div>
@@ -91,11 +98,68 @@
         <div class="orders-list" id="ordersList"></div>
     </div>
 
-    <script src="js/supabase.js"></script>
+<script src="js/supabase.js"></script>
     <script>
         let allOrders = [];
         let currentFilter = 'all';
         let currentSearchQuery = '';
+        let currentBranchFilter = '';
+        let branchesData = {};
+        
+        // Initialize from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlBranchId = urlParams.get('branch');
+        if (urlBranchId) {
+            currentBranchFilter = urlBranchId;
+        }
+        
+        async function loadBranches() {
+            try {
+                const response = await fetch('https://epbzzntbppyyxeisuvtr.supabase.co/rest/v1/branches?is_active=eq.true&order=name', {
+                    headers: {
+                        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwYnp6bnRicHB5eXhlaXN1dnRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NjY2MzIsImV4cCI6MjA5MzI0MjYzMn0.w8GcCOAOIhi7Yx7Rhc8i8qszemDI6i0An9qSlTUye2Y',
+                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwYnp6bnRicHB5eXhlaXN1dnRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NjY2MzIsImV4cCI6MjA5MzI0MjYzMn0.w8GcCOAOIhi7Yx7Rhc8i8qszemDI6i0An9qSlTUye2Y'
+                    }
+                });
+                const branches = await response.json();
+                const select = document.getElementById('branchSelect');
+                branches.forEach(branch => {
+                    branchesData[branch.id] = branch;
+                    const option = document.createElement('option');
+                    option.value = branch.id;
+                    option.textContent = branch.name;
+                    if (branch.id === urlBranchId) option.selected = true;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.log('No branches found, using fallback');
+            }
+        }
+        
+        function filterByBranch(branchId) {
+            currentBranchFilter = branchId;
+            renderOrders();
+        }
+        
+        async function loadOrders() {
+            try {
+                const response = await fetch('https://epbzzntbppyyxeisuvtr.supabase.co/rest/v1/orders?order=created_at.desc', {
+                    headers: {
+                        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwYnp6bnRicHB5eXhlaXN1dnRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NjY2MzIsImV4cCI6MjA5MzI0MjYzMn0.w8GcCOAOIhi7Yx7Rhc8i8qszemDI6i0An9qSlTUye2Y',
+                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwYnp6bnRicHB5eXhlaXN1dnRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NjY2MzIsImV4cCI6MjA5MzI0MjYzMn0.w8GcCOAOIhi7Yx7Rhc8i8qszemDI6i0An9qSlTUye2Y'
+                    }
+                });
+                allOrders = await response.json();
+                // Restore search if exists
+                if (currentSearchQuery) {
+                    searchByOrderNumber(currentSearchQuery);
+                } else {
+                    renderOrders();
+                }
+            } catch (error) {
+                console.error('Error loading orders:', error);
+            }
+        }
         
         async function loadOrders() {
             try {
@@ -218,6 +282,8 @@
             const ordersList = document.getElementById('ordersList');
             const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
             const time = new Date(order.created_at).toLocaleString();
+            const branch = order.branch_id ? branchesData[order.branch_id] : null;
+            const branchDisplay = branch ? `<div style="color: var(--primary-red); font-weight: 600;">📍 ${branch.name}</div>` : '';
             
             ordersList.innerHTML = `
                 <div class="order-card ${order.status}" style="border: 3px solid var(--primary-red); transform: scale(1.02);">
@@ -226,6 +292,7 @@
                             <div class="order-time">${time}</div>
                             <div class="order-id" style="font-size: 1.5rem;">🎯 Order #${order.order_number}</div>
                             <div style="font-size: 1.3rem; font-weight: bold;">👤 ${order.pickup_name}</div>
+                            ${branchDisplay}
                         </div>
                         <div class="order-pickup">${order.status.toUpperCase()}</div>
                     </div>
@@ -254,19 +321,26 @@
             `;
         }
         
-        function renderOrders(customOrders = null) {
+function renderOrders(customOrders = null) {
             const ordersList = document.getElementById('ordersList');
             let filtered = customOrders || (currentFilter === 'all' ? allOrders : allOrders.filter(o => o.status === currentFilter));
+            
+            // Apply branch filter
+            if (currentBranchFilter) {
+                filtered = filtered.filter(o => o.branch_id === currentBranchFilter);
+            }
             
             if (filtered.length === 0) {
                 ordersList.innerHTML = '<div class="no-orders">No orders found</div>';
                 return;
             }
             
-ordersList.innerHTML = filtered.map(order => {
+ ordersList.innerHTML = filtered.map(order => {
                 const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
                 const time = new Date(order.created_at).toLocaleString();
                 const safeId = encodeURIComponent(order.id);
+                const branch = order.branch_id ? branchesData[order.branch_id] : null;
+                const branchDisplay = branch ? `<div style="color: var(--primary-red); font-weight: 600; margin-top: 5px;">📍 ${branch.name}</div>` : '';
                 
                 return `
                     <div class="order-card ${order.status}">
@@ -274,6 +348,7 @@ ordersList.innerHTML = filtered.map(order => {
                             <div>
                                 <div class="order-time">${time}</div>
                                 <div class="order-id">Order #${order.id.slice(0, 8)}</div>
+                                ${branchDisplay}
                             </div>
                             <div class="order-pickup">🎯 ${order.pickup_name}</div>
                         </div>
@@ -343,6 +418,7 @@ ordersList.innerHTML = filtered.map(order => {
         }
         
         // Auto-refresh every 10 seconds
+        loadBranches();
         loadOrders();
         setInterval(loadOrders, 10000);
         

@@ -1,5 +1,54 @@
 # Supabase Setup for Big Buns Burger Order System
 
+## Branches Table (Multi-Branch Feature)
+
+Run this in Supabase SQL Editor:
+
+```sql
+-- Create branches table
+CREATE TABLE IF NOT EXISTS branches (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  location TEXT,
+  address TEXT,
+  phone TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Insert sample branches
+INSERT INTO branches (name, slug, location, address, phone) VALUES
+('Main Branch', 'main', 'Downtown', '123 Burger Street, Foodville, CA', '(555) 123-4567'),
+('North Branch', 'north', 'North District', '456 North Ave, Foodville, CA', '(555) 234-5678'),
+('South Branch', 'south', 'South District', '789 South Blvd, Foodville, CA', '(555) 345-6789');
+
+-- Enable RLS
+ALTER TABLE branches ENABLE ROW LEVEL SECURITY;
+
+-- Policies
+DROP POLICY IF EXISTS "Public read branches" ON branches;
+DROP POLICY IF EXISTS "Public insert branches" ON branches;
+DROP POLICY IF EXISTS "Public update branches" ON branches;
+DROP POLICY IF EXISTS "Public delete branches" ON branches;
+
+CREATE POLICY "Public read branches" ON branches FOR SELECT USING (true);
+CREATE POLICY "Public insert branches" ON branches FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public update branches" ON branches FOR UPDATE USING (true);
+CREATE POLICY "Public delete branches" ON branches FOR DELETE USING (true);
+```
+
+---
+
+## Add branch_id to Orders Table
+
+```sql
+-- Add branch_id column to orders table
+ALTER TABLE orders ADD COLUMN branch_id UUID REFERENCES branches(id);
+```
+
+---
+
 ## Orders Table SQL
 
 Run this in Supabase SQL Editor:

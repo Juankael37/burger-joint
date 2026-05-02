@@ -113,6 +113,7 @@
     <div class="order-page">
         <div class="order-header">
             <h1>🍔 Order Here</h1>
+            <div class="branch-badge" id="branchBadge"></div>
             <div class="order-notice">
                 <span>📍 Pay at Counter &bull; Pickup in Store</span>
             </div>
@@ -301,6 +302,43 @@
                 return;
             }
             window.location.href = 'checkout.html';
+        }
+        
+        // Branch handling
+        let currentBranch = null;
+        const urlParams = new URLSearchParams(window.location.search);
+        const branchSlug = urlParams.get('branch');
+        
+        if (branchSlug) {
+            // Save to localStorage
+            localStorage.setItem('bigBunsBranch', branchSlug);
+            displayBranchBadge(branchSlug);
+        } else {
+            // Check localStorage
+            const savedBranch = localStorage.getItem('bigBunsBranch');
+            if (savedBranch) {
+                displayBranchBadge(savedBranch);
+            }
+        }
+        
+        async function displayBranchBadge(slug) {
+            const branchBadge = document.getElementById('branchBadge');
+            try {
+                const branches = await supabaseClient.getBranches();
+                const branch = branches.find(b => b.slug === slug);
+                if (branch) {
+                    currentBranch = branch;
+                    branchBadge.innerHTML = `<span class="branch-name">📍 ${branch.name}</span>`;
+                } else {
+                    // Fallback: capitalize first letter
+                    const displayName = slug.charAt(0).toUpperCase() + slug.slice(1);
+                    branchBadge.innerHTML = `<span class="branch-name">📍 ${displayName} Branch</span>`;
+                }
+            } catch (e) {
+                console.log('Branch fetch error:', e);
+                const displayName = slug.charAt(0).toUpperCase() + slug.slice(1);
+                branchBadge.innerHTML = `<span class="branch-name">📍 ${displayName} Branch</span>`;
+            }
         }
         
         loadOrderMenu();

@@ -1607,8 +1607,116 @@ input:checked + .slider::before {
     font-size: 0.9rem;
 }
 
+.branch-badge {
+    margin: 10px 0;
+}
+
+.branch-badge .branch-name {
+    background: var(--primary-red);
+    color: var(--white);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    display: inline-block;
+}
+
 @media (max-width: 768px) {
     .order-page {
         padding-bottom: 80px;
     }
+}
+
+/* Branch Selection Modal */
+.branch-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.branch-modal-content {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 30px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    text-align: center;
+}
+
+.branch-modal-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 28px;
+    cursor: pointer;
+    color: var(--medium-gray);
+}
+
+.branch-modal-content h2 {
+    color: var(--primary-red);
+    margin-bottom: 10px;
+}
+
+.branch-modal-content > p {
+    color: var(--medium-gray);
+    margin-bottom: 20px;
+}
+
+.branch-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.branch-card {
+    background: var(--light-gray);
+    border: 2px solid transparent;
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+}
+
+.branch-card:hover {
+    border-color: var(--primary-red);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(211, 47, 47, 0.2);
+}
+
+.branch-card h3 {
+    color: var(--dark-gray);
+    margin: 0 0 8px 0;
+    font-size: 1.1rem;
+}
+
+.branch-card p {
+    margin: 0;
+    color: var(--medium-gray);
+    font-size: 0.9rem;
+}
+
+.branch-card .branch-address {
+    font-size: 0.85rem;
+    margin-top: 5px;
+}
+
+.branch-card .branch-phone {
+    margin-top: 5px;
+}
+
+.branch-loading {
+    padding: 20px;
+    text-align: center;
+    color: var(--medium-gray);
 }

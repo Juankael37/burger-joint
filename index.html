@@ -29,7 +29,7 @@
                 <li><a href="#about">About</a></li>
                 <li><a href="#menu">Menu</a></li>
                 <li><a href="#contact">Contact</a></li>
-                <li><a href="order.html" class="order-nav-btn">Order Now</a></li>
+                <li><a href="#" class="order-nav-btn" onclick="showBranchModal(); return false;">Order Now</a></li>
             </ul>
         </div>
     </nav>
@@ -181,5 +181,79 @@
 
     <script src="js/supabase.js"></script>
     <script src="js/app.js"></script>
+<!-- Branch Selection Modal -->
+    <div class="branch-modal" id="branchModal">
+        <div class="branch-modal-content">
+            <span class="branch-modal-close" onclick="closeBranchModal()">&times;</span>
+            <h2>🍔 Select a Branch</h2>
+            <p>Choose which location you'd like to order from:</p>
+            <div class="branch-list" id="branchList">
+                <div class="branch-loading">Loading branches...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/supabase.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Branch Selection Modal
+        const branchModal = document.getElementById('branchModal');
+        const branchList = document.getElementById('branchList');
+        let branches = [];
+
+        async function showBranchModal() {
+            branchModal.style.display = 'flex';
+            await loadBranches();
+        }
+
+        function closeBranchModal() {
+            branchModal.style.display = 'none';
+        }
+
+        async function loadBranches() {
+            try {
+                branches = await supabaseClient.getBranches();
+                if (branches && branches.length > 0) {
+                    renderBranches();
+                } else {
+                    // Fallback if no branches in DB - use default
+                    branches = [
+                        { id: '1', name: 'Main Branch', slug: 'main', location: 'Downtown' },
+                        { id: '2', name: 'North Branch', slug: 'north', location: 'North District' },
+                        { id: '3', name: 'South Branch', slug: 'south', location: 'South District' }
+                    ];
+                    renderBranches();
+                }
+            } catch (e) {
+                console.log('Using fallback branches');
+                branches = [
+                    { id: '1', name: 'Main Branch', slug: 'main', location: 'Downtown' },
+                    { id: '2', name: 'North Branch', slug: 'north', location: 'North District' },
+                    { id: '3', name: 'South Branch', slug: 'south', location: 'South District' }
+                ];
+                renderBranches();
+            }
+        }
+
+        function renderBranches() {
+            branchList.innerHTML = branches.map(branch => `
+                <div class="branch-card" onclick="selectBranch('${branch.slug}')">
+                    <h3>${branch.name}</h3>
+                    <p>📍 ${branch.location || 'View on Map'}</p>
+                    ${branch.address ? `<p class="branch-address">${branch.address}</p>` : ''}
+                    ${branch.phone ? `<p class="branch-phone">📞 ${branch.phone}</p>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function selectBranch(slug) {
+            window.location.href = 'order.html?branch=' + slug;
+        }
+
+        // Close modal on outside click
+        branchModal.addEventListener('click', function(e) {
+            if (e.target === branchModal) closeBranchModal();
+        });
+    </script>
 </body>
 </html>

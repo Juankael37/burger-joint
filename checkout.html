@@ -129,11 +129,6 @@
             // Show success FIRST (always show order number to customer)
             document.getElementById('checkoutPage').style.display = 'none';
             document.getElementById('successPage').style.display = 'block';
-            document.getElementById('confirmPickup').innerHTML = `
-                <div style="font-size: 2.5rem; font-weight: bold; color: var(--primary-red);">🎯 Order #${orderData.order_number}</div>
-                <div style="font-size: 1.3rem; margin-top: 10px;">Name: ${pickupName}</div>
-                <div style="font-size: 1.1rem; margin-top: 5px; color: var(--medium-gray);">Total: ₱${orderData.total.toFixed(2)}</div>
-            `;
             
             // Add instruction message
             const instruction = document.createElement('div');
@@ -148,7 +143,37 @@
             // Clear cart FIRST
             clearCart();
             
-            // THEN save to Supabase in background
+            // Get branch info
+            const branchSlug = localStorage.getItem('bigBunsBranch');
+            let branchId = null;
+            let branchName = '';
+            let branchAddress = '';
+            if (branchSlug) {
+                try {
+                    const branches = await supabaseClient.getBranches();
+                    const branch = branches.find(b => b.slug === branchSlug);
+                    if (branch) {
+                        branchId = branch.id;
+                        branchName = branch.name;
+                        branchAddress = branch.address || '';
+                    } else {
+                        branchName = branchSlug;
+                    }
+                } catch (e) {
+                    branchName = branchSlug;
+                }
+            }
+            
+            // Update success message with branch info
+            document.getElementById('confirmPickup').innerHTML = `
+                <div style="font-size: 2.5rem; font-weight: bold; color: var(--primary-red);">🎯 Order #${orderData.order_number}</div>
+                <div style="font-size: 1.3rem; margin-top: 10px;">Name: ${pickupName}</div>
+                <div style="font-size: 1.1rem; margin-top: 5px; color: var(--medium-gray);">Total: ₱${orderData.total.toFixed(2)}</div>
+                ${branchName ? `<div style="font-size: 1.1rem; margin-top: 8px; color: var(--primary-red); font-weight: 600;">📍 ${branchName}</div>` : ''}
+                ${branchAddress ? `<div style="font-size: 0.95rem; color: var(--medium-gray);">${branchAddress}</div>` : ''}
+            `;
+            
+            // Then save to Supabase in background
             try {
                 await fetch('https://epbzzntbppyyxeisuvtr.supabase.co/rest/v1/orders', {
                     method: 'POST',
@@ -162,6 +187,7 @@
                         total: orderData.total,
                         pickup_name: orderData.pickup_name,
                         order_number: orderData.order_number,
+                        branch_id: branchId,
                         status: 'pending'
                     })
                 });
