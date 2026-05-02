@@ -94,7 +94,26 @@ const supabaseClient = {
             unavailable = unavailable.filter(id => id !== branchId);
         }
         
-        return this.updateMenuItem(itemId, { unavailable_at_branches: unavailable });
+        console.log('Updating item:', itemId, 'unavailable:', unavailable);
+        
+        const response = await fetch(`${supabaseUrl}/rest/v1/menu_items?id=eq.${itemId}`, {
+            method: 'PATCH',
+            headers: {
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation'
+            },
+            body: JSON.stringify({ unavailable_at_branches: unavailable })
+        });
+        
+        if (!response.ok) {
+            const err = await response.text();
+            console.error('Update failed:', err);
+            throw new Error(err);
+        }
+        
+        return response.json();
     },
 
     async getMenuItemById(id) {
