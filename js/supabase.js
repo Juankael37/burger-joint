@@ -94,8 +94,6 @@ const supabaseClient = {
             unavailable = unavailable.filter(id => id !== branchId);
         }
         
-        console.log('Updating item:', itemId, 'unavailable:', unavailable);
-        
         const response = await fetch(`${supabaseUrl}/rest/v1/menu_items?id=eq.${itemId}`, {
             method: 'PATCH',
             headers: {

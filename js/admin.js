@@ -16,9 +16,9 @@ let currentAdminBranch = '';
 let branchesData = {};
 
 const fallbackBranches = [
-    { id: 'main', name: 'Main Branch' },
-    { id: 'north', name: 'North Branch' },
-    { id: 'south', name: 'South Branch' }
+    { id: '1', name: 'Main Branch', slug: 'main' },
+    { id: '2', name: 'North Branch', slug: 'north' },
+    { id: '3', name: 'South Branch', slug: 'south' }
 ];
 
 async function loadBranchesForAdmin() {
@@ -35,6 +35,8 @@ async function loadBranchesForAdmin() {
         if (branches && branches.length > 0) {
             branches.forEach(branch => {
                 branchesData[branch.id] = branch;
+                // Also store by slug for lookup
+                if (branch.slug) branchesData[branch.slug] = branch;
                 const option = document.createElement('option');
                 option.value = branch.id;
                 option.textContent = branch.name;
