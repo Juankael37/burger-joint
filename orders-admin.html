@@ -116,9 +116,10 @@
                 return;
             }
             
-            ordersList.innerHTML = filtered.map(order => {
+ordersList.innerHTML = filtered.map(order => {
                 const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
                 const time = new Date(order.created_at).toLocaleString();
+                const safeId = encodeURIComponent(order.id);
                 
                 return `
                     <div class="order-card ${order.status}">
@@ -134,7 +135,7 @@
                             ${items.map(item => `
                                 <div class="order-item-row">
                                     <span>${item.qty}x ${item.name}</span>
-                                    <span>₱{(item.price * item.qty).toFixed(2)}</span>
+                                    <span>₱${(item.price * item.qty).toFixed(2)}</span>
                                 </div>
                             `).join('')}
                         </div>
@@ -146,9 +147,9 @@
                         </div>
                         
                         <div class="order-actions">
-                            ${order.status === 'pending' ? `<button class="btn-claim" onclick="updateStatus('${order.id}', 'claimed')">Mark Claimed</button>` : ''}
-                            ${order.status === 'claimed' ? `<button class="btn-complete" onclick="updateStatus('${order.id}', 'completed')">Complete Order</button>` : ''}
-                            ${order.status !== 'completed' && order.status !== 'rejected' ? `<button class="btn-reject" onclick="updateStatus('${order.id}', 'rejected')">Reject</button>` : ''}
+                            ${order.status === 'pending' ? `<button class="btn-claim" data-id="${safeId}" data-status="claimed">Mark Claimed</button>` : ''}
+                            ${order.status === 'claimed' ? `<button class="btn-complete" data-id="${safeId}" data-status="completed">Complete Order</button>` : ''}
+                            ${order.status !== 'completed' && order.status !== 'rejected' ? `<button class="btn-reject" data-id="${safeId}" data-status="rejected">Reject</button>` : ''}
                         </div>
                     </div>
                 `;
@@ -196,6 +197,15 @@
         // Auto-refresh every 10 seconds
         loadOrders();
         setInterval(loadOrders, 10000);
+        
+        // Add button click handlers
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('btn-claim') || e.target.classList.contains('btn-complete') || e.target.classList.contains('btn-reject')) {
+                const orderId = decodeURIComponent(e.target.getAttribute('data-id'));
+                const newStatus = e.target.getAttribute('data-status');
+                updateStatus(orderId, newStatus);
+            }
+        });
     </script>
 </body>
 </html>
