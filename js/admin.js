@@ -76,11 +76,9 @@ function toggleItemAvailability(itemId, branchId) {
     const item = menuItems.find(i => i.id === itemId);
     if (!item) return;
     
-    const checkbox = document.querySelector(`input[data-item-id="${itemId}"][data-branch-id="${branchId}"]`);
-    if (!checkbox) return;
-    
-    const isCurrentlyAvailable = checkbox.checked;
-    const makeUnavailable = !isCurrentlyAvailable;
+    const unavailable = item.unavailable_at_branches || [];
+    const isCurrentlyUnavailable = unavailable.includes(branchId);
+    const makeUnavailable = !isCurrentlyUnavailable;
     
     supabaseClient.toggleItemAvailability(itemId, branchId, makeUnavailable).then(() => {
         loadAdminItems();
