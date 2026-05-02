@@ -47,6 +47,7 @@ ALTER TABLE menu_items ADD COLUMN unavailable_at_branches TEXT[];
 | North Branch Order | `/order.html?branch=north` |
 | Admin (All) | `/admin.html` |
 | Admin (Branch Filter) | `/orders-admin.html?branch=main` |
+| Branch Settings | `/branches.html` |
 
 ### Features Implemented
 - [x] Branch selection modal on landing page
@@ -54,7 +55,8 @@ ALTER TABLE menu_items ADD COLUMN unavailable_at_branches TEXT[];
 - [x] Orders saved with branch_id
 - [x] Admin branch filter dropdown
 - [x] Per-branch item availability toggle
-- [ ] Toggle switch needs testing after SQL column added
+- [x] Branch management page (add, edit, delete branches)
+- [x] Branch availability filters items on order page
 
 ---
 
@@ -68,7 +70,7 @@ ALTER TABLE menu_items ADD COLUMN unavailable_at_branches TEXT[];
 - About section (two-column: story + photos grid)
 - Menu section (categorized cards, filterable)
 - Contact section (info + hours + map placeholder)
-- Branch selection modal (NEW)
+- Branch selection modal
 - Footer (copyright + social links)
 
 **Order Page (order.html)**
@@ -76,6 +78,7 @@ ALTER TABLE menu_items ADD COLUMN unavailable_at_branches TEXT[];
 - Menu categories with Add buttons
 - Cart sidebar (sticky on desktop)
 - Mobile sticky checkout button
+- Disabled Add button for unavailable items
 
 **Checkout (checkout.html)**
 - Order summary
@@ -85,6 +88,7 @@ ALTER TABLE menu_items ADD COLUMN unavailable_at_branches TEXT[];
 **Admin Pages**
 - admin.html: Menu management + branch availability toggle
 - orders-admin.html: Orders list with branch filter
+- branches.html: Dedicated branch settings page
 
 ### Responsive Breakpoints
 - Desktop: > 1024px
@@ -111,12 +115,6 @@ ALTER TABLE menu_items ADD COLUMN unavailable_at_branches TEXT[];
 - Section Titles: 48px (desktop), 32px (mobile)
 - Body Text: 16px
 - Small Text: 14px
-
-**Spacing System**
-- Section padding: 80px vertical (desktop), 40px (mobile)
-- Card padding: 24px
-- Grid gap: 24px
-- Container max-width: 1200px
 
 ### Components
 
@@ -153,7 +151,7 @@ ALTER TABLE menu_items ADD COLUMN unavailable_at_branches TEXT[];
 **Admin Item Cards**
 - Thumbnail (150x150)
 - Name + category
-- Branch availability toggle (NEW)
+- Branch availability toggle
 - Edit/Delete buttons
 - Status badge (Draft/Published)
 
@@ -199,6 +197,14 @@ ALTER TABLE menu_items ADD COLUMN unavailable_at_branches TEXT[];
 9. **Preview Panel** - Live preview of menu changes
 10. **Publish** - Sync draft changes to public menu
 11. **Supabase Persistence** - Data and images saved in Supabase
+
+### Branch Settings Features (branches.html)
+1. **View All Branches** - Table showing name, slug, location, status
+2. **Add New Branch** - Form with name + location
+3. **Edit Branch** - Inline edit branch name, save to update
+4. **Activate/Deactivate** - Toggle branch active status
+5. **Delete Branch** - Remove branch with confirmation
+6. **Auto-refresh** - Admin dropdown updates when branches change
 
 ### Orders Admin Features
 1. **Branch Filter** - Filter orders by branch
@@ -253,6 +259,7 @@ restaurant-website/
 ├── checkout.html     (checkout page)
 ├── admin.html        (menu admin)
 ├── orders-admin.html (orders admin)
+├── branches.html     (branch settings)
 ├── css/
 │   └── styles.css  (all styles)
 ├── js/
@@ -309,23 +316,30 @@ restaurant-website/
 ## Acceptance Criteria
 
 ### Public Page
-- [ ] Hero section displays with background image and CTA buttons
-- [ ] Navigation scrolls smoothly to sections
-- [ ] About section shows story and photos
-- [ ] Menu displays categorized items with images
-- [ ] Category filter works correctly
-- [ ] Contact section shows hours and info
-- [ ] Mobile responsive on all breakpoints
+- [x] Hero section displays with background image and CTA buttons
+- [x] Navigation scrolls smoothly to sections
+- [x] About section shows story and photos
+- [x] Menu displays categorized items with images
+- [x] Category filter works correctly
+- [x] Contact section shows hours and info
+- [x] Mobile responsive on all breakpoints
 
 ### Admin Page
 - [x] Password protection works
-- [x] Can add new menu item with image (Requires Supabase RLS policies to be set)
+- [x] Can add new menu item with image
 - [x] Can edit existing items
 - [x] Can delete items with confirmation
 - [x] Drag-drop image upload works
 - [x] Preview shows draft changes
 - [x] Publish syncs to public menu
 - [x] Data persists after page refresh
+- [x] Branch availability toggle works
+- [x] Branch settings page - add/edit/delete branches
+
+### Order Page
+- [x] Shows items for selected branch
+- [x] Unavailable items have disabled Add button
+- [x] Cart works with branch context
 
 ---
 
@@ -338,23 +352,38 @@ restaurant-website/
 - [x] Image upload to Supabase Storage
 - [x] Multi-branch feature (branch selection, orders with branch_id)
 - [x] Admin branch filter for orders
-- [x] Per-branch item availability toggle (needs DB column)
+- [x] Per-branch item availability toggle
+- [x] Order page filters unavailable items by branch
+- [x] Add button disabled for unavailable items
+- [x] Branch management page (add, edit, delete, activate/deactivate)
+- [x] Admin dropdown refreshes when branches change
+- [x] Stable sorting in admin to prevent reordering on toggle
 
 ### Pending
-- [ ] Fix toggle switch - needs `unavailable_at_branches` TEXT[] column in Supabase
-- [ ] Test toggle makes items unavailable for specific branches
-- [ ] Test order page filters unavailable items
+- [ ] Test complete branch availability flow end-to-end
 
 ### Known Issues
-- Toggle switch error: `Could not find the 'unavailable_at_branches' column` - need to add column to Supabase
-- Run SQL: `ALTER TABLE menu_items ADD COLUMN unavailable_at_branches TEXT[];`
+- Previously: Toggle switch error - FIXED (used UUID instead of slug)
+- Previously: "No branches found" in modal - FIXED (created dedicated branches.html page)
+- Previously: Items reordering on toggle - FIXED (added stable alphabetical sort)
 
 ---
 
 ## Notes
 - Uses slugs (main, north, south) for branch identification in unavailable_at_branches
 - Orders saved with branch_id (UUID from branches table)
-- Branch dropdown values stored as branch IDs (UUIDs)
+- Branch dropdown values stored as branch slugs
+- Branch settings page communicates with admin via postMessage
 - Demo project for portfolio purposes
 - Uses placeholder images from Unsplash
 - Simple client-side password (not secure for production)
+
+---
+
+## Recent Updates (2025-05-02)
+1. Fixed branch availability filter - use slugs instead of UUIDs
+2. Added branch management page (branches.html) with full CRUD
+3. Admin dropdown now refreshes when branches are modified
+4. Order page shows disabled Add button for unavailable items
+5. Added stable sorting to admin to prevent reordering on toggle
+6. Removed leaf emoji from Branch Settings title for cleaner look
