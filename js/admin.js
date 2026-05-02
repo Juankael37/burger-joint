@@ -15,11 +15,24 @@ let currentImageData = null;
 let currentAdminBranch = '';
 let branchesData = {};
 
+const fallbackBranches = [
+    { id: 'main', name: 'Main Branch' },
+    { id: 'north', name: 'North Branch' },
+    { id: 'south', name: 'South Branch' }
+];
+
 async function loadBranchesForAdmin() {
+    const select = document.getElementById('adminBranchSelect');
+    if (!select) return;
+    
+    // Clear existing options except first
+    while (select.options.length > 1) {
+        select.remove(1);
+    }
+    
     try {
         const branches = await supabaseClient.getBranches();
-        const select = document.getElementById('adminBranchSelect');
-        if (select && branches) {
+        if (branches && branches.length > 0) {
             branches.forEach(branch => {
                 branchesData[branch.id] = branch;
                 const option = document.createElement('option');
@@ -27,10 +40,24 @@ async function loadBranchesForAdmin() {
                 option.textContent = branch.name;
                 select.appendChild(option);
             });
+        } else {
+            loadFallbackBranches();
         }
     } catch (e) {
         console.log('Failed to load branches:', e);
+        loadFallbackBranches();
     }
+}
+
+function loadFallbackBranches() {
+    const select = document.getElementById('adminBranchSelect');
+    fallbackBranches.forEach(branch => {
+        branchesData[branch.id] = branch;
+        const option = document.createElement('option');
+        option.value = branch.id;
+        option.textContent = branch.name;
+        select.appendChild(option);
+    });
 }
 
 function switchAdminBranch(branchId) {

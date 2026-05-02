@@ -737,7 +737,7 @@ input, select, textarea {
 .admin-header {
     background: var(--white);
     box-shadow: var(--shadow);
-    padding: 15px 0;
+    padding: 12px 0;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -746,10 +746,12 @@ input, select, textarea {
 .admin-header-content {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 25px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
 }
 
 .admin-logo {
@@ -783,6 +785,7 @@ input, select, textarea {
     display: flex;
     align-items: center;
     gap: 6px;
+    font-size: 0.9rem;
 }
 
 .nav-tab:hover {
@@ -798,7 +801,7 @@ input, select, textarea {
 .admin-actions {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
 .branch-select {
