@@ -1,7 +1,7 @@
-# The Burger Joint - Restaurant Website
+# Big Buns Burger - Restaurant Website
 
 ## Project Overview
-- **Project Name**: The Burger Joint
+- **Project Name**: Big Buns Burger
 - **Type**: Portfolio demo restaurant website
 - **Tech Stack**: HTML5, CSS3, Vanilla JavaScript, Supabase (Database & Storage)
 - **Core Functionality**: Public restaurant site with hero, about, menu, contact sections + secret admin dashboard for menu management

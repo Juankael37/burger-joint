@@ -1,5 +1,5 @@
 /**
- * The Burger Joint - Public Page JavaScript
+ * Big Buns Burger - Public Page JavaScript
  * Loads menu from Supabase
  */
 

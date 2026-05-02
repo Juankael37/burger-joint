@@ -1,5 +1,5 @@
 /**
- * The Burger Joint - Admin Dashboard JavaScript
+ * Big Buns Burger - Admin Dashboard JavaScript
  * Uses Supabase for data storage
  */
 
