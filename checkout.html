@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | Big Buns Burger</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .checkout-page { padding: 80px 20px 40px; max-width: 600px; margin: 0 auto; }
+        .checkout-page h1 { text-align: center; color: var(--primary-red); margin-bottom: 30px; }
+        
+        .checkout-summary { background: var(--white); border-radius: 12px; padding: 25px; box-shadow: var(--shadow); margin-bottom: 25px; }
+        .checkout-summary h2 { font-size: 1.2rem; margin-bottom: 15px; }
+        
+        .summary-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-color); }
+        .summary-item:last-child { border-bottom: none; font-weight: 700; font-size: 1.1rem; }
+        .summary-item .qty { color: var(--medium-gray); margin-right: 10px; }
+        
+        .checkout-form { background: var(--white); border-radius: 12px; padding: 25px; box-shadow: var(--shadow); }
+        .checkout-form h2 { font-size: 1.2rem; margin-bottom: 20px; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 8px; }
+        .form-group input { width: 100%; padding: 14px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 1rem; }
+        .form-group input:focus { border-color: var(--primary-red); outline: none; }
+        
+        .order-note { background: #FFF3E0; border: 1px solid #FFB74D; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+        .order-note p { font-size: 0.9rem; color: #E65100; margin: 0; }
+        
+        .submit-order-btn { width: 100%; padding: 16px; font-size: 1.1rem; }
+        
+        .back-link { display: inline-block; margin-bottom: 20px; color: var(--medium-gray); }
+        
+        .success-message { text-align: center; padding: 40px; }
+        .success-message h2 { color: #2E7D32; margin-bottom: 20px; }
+        .order-number { background: var(--light-gray); padding: 15px; border-radius: 8px; font-size: 1.2rem; font-weight: 700; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="checkout-page" id="checkoutPage">
+        <a href="order.html" class="back-link">← Back to Menu</a>
+        
+        <h1>🧾 Checkout</h1>
+        
+        <div class="checkout-summary">
+            <h2>Order Summary</h2>
+            <div id="orderItems"></div>
+            <div class="summary-item">
+                <span>Total</span>
+                <span id="orderTotal" style="color: var(--primary-red);">$0.00</span>
+            </div>
+        </div>
+        
+        <div class="checkout-form">
+            <h2>Pickup Details</h2>
+            <div class="order-note">
+                <p>💡 Payment will be collected at the counter when you pick up your order.</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="pickupName">Your Name or Table Number</label>
+                <input type="text" id="pickupName" placeholder="e.g., Mike or Table 5" required>
+            </div>
+            
+            <button class="btn btn-primary submit-order-btn" onclick="submitOrder()">Place Order</button>
+        </div>
+    </div>
+    
+    <div class="checkout-page" id="successPage" style="display: none;">
+        <div class="success-message">
+            <h2>✅ Order Placed!</h2>
+            <p>Your order has been sent to the kitchen.</p>
+            <div class="order-number" id="confirmPickup"></div>
+            <p>Show this to the counter when you pick up your food.</p>
+            <a href="order.html" class="btn btn-primary" style="margin-top: 20px;">Order Again</a>
+        </div>
+    </div>
+
+    <script src="js/supabase.js"></script>
+    <script src="js/orders.js"></script>
+    <script>
+        function renderCheckoutSummary() {
+            const orderItems = document.getElementById('orderItems');
+            const orderTotal = document.getElementById('orderTotal');
+            
+            orderItems.innerHTML = cart.map(item => `
+                <div class="summary-item">
+                    <span><span class="qty">${item.qty}x</span>${item.name}</span>
+                    <span>$${(item.price * item.qty).toFixed(2)}</span>
+                </div>
+            `).join('');
+            
+            orderTotal.textContent = '$' + getCartTotal().toFixed(2);
+        }
+        
+        async function submitOrder() {
+            const pickupName = document.getElementById('pickupName').value.trim();
+            
+            if (!pickupName) {
+                alert('Please enter your name or table number!');
+                return;
+            }
+            
+            const orderData = {
+                items: cart.map(item => ({ name: item.name, price: item.price, qty: item.qty })),
+                total: getCartTotal(),
+                pickup_name: pickupName
+            };
+            
+            try {
+                await supabaseClient.createOrder(orderData);
+                
+                // Show success
+                document.getElementById('checkoutPage').style.display = 'none';
+                document.getElementById('successPage').style.display = 'block';
+                document.getElementById('confirmPickup').textContent = 'Pickup: ' + pickupName;
+                
+                // Clear cart
+                clearCart();
+            } catch (error) {
+                console.error('Order error:', error);
+                alert('Failed to place order. Please try again.');
+            }
+        }
+        
+        renderCheckoutSummary();
+    </script>
+</body>
+</html>

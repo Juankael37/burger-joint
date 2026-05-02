@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Now | Big Buns Burger</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .order-page { padding: 80px 20px 40px; max-width: 1200px; margin: 0 auto; }
+        .order-header { text-align: center; margin-bottom: 40px; }
+        .order-header h1 { font-size: 2.5rem; color: var(--primary-red); margin-bottom: 10px; }
+        
+        .order-grid { display: grid; grid-template-columns: 1fr 350px; gap: 30px; }
+        
+        .menu-section { margin-bottom: 30px; }
+        .menu-section h2 { font-size: 1.5rem; margin-bottom: 20px; color: var(--dark-gray); border-bottom: 2px solid var(--primary-red); padding-bottom: 10px; }
+        
+        .order-menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        
+        .order-item { background: var(--white); border: 2px solid var(--border-color); border-radius: 10px; padding: 15px; text-align: center; cursor: pointer; transition: var(--transition); }
+        .order-item:hover { border-color: var(--primary-red); transform: translateY(-3px); }
+        .order-item-name { font-weight: 700; display: block; margin-bottom: 5px; }
+        .order-item-price { color: var(--primary-red); font-weight: 600; }
+        .add-btn { display: inline-block; margin-top: 10px; padding: 8px 16px; background: var(--primary-red); color: var(--white); border-radius: 20px; font-size: 0.9rem; }
+        
+        .cart-sidebar { background: var(--white); border-radius: 12px; padding: 20px; box-shadow: var(--shadow); position: sticky; top: 100px; height: fit-content; }
+        .cart-sidebar h2 { font-size: 1.3rem; margin-bottom: 15px; }
+        
+        .cart-items-container { min-height: 200px; max-height: 400px; overflow-y: auto; }
+        
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
+        .cart-item:last-child { border-bottom: none; }
+        .cart-item-info { flex: 1; }
+        .cart-item-name { font-weight: 600; font-size: 0.95rem; }
+        .cart-item-price { color: var(--primary-red); font-size: 0.9rem; }
+        .cart-item-controls { display: flex; align-items: center; gap: 8px; }
+        .cart-item-controls button { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border-color); background: var(--white); cursor: pointer; }
+        .cart-item-controls button:hover { background: var(--primary-red); color: var(--white); border-color: var(--primary-red); }
+        .remove-btn { color: var(--primary-red) !important; font-size: 1.2rem; }
+        
+        .cart-total { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-top: 2px solid var(--dark-gray); margin-top: 15px; font-size: 1.2rem; font-weight: 700; }
+        .cart-total span:last-child { color: var(--primary-red); font-size: 1.4rem; }
+        
+        .checkout-btn { width: 100%; padding: 15px; font-size: 1.1rem; margin-top: 15px; }
+        .empty-cart { text-align: center; color: var(--medium-gray); padding: 40px 20px; }
+        
+        @media (max-width: 768px) {
+            .order-grid { grid-template-columns: 1fr; }
+            .cart-sidebar { position: static; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar scrolled">
+        <div class="nav-container">
+            <a href="index.html" class="logo">Big Buns Burger</a>
+            <div class="nav-right">
+                <a href="index.html">Home</a>
+                <a href="order.html" class="active">Order</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="order-page">
+        <div class="order-header">
+            <h1>🍔 Order Here</h1>
+            <p>Add items to your cart and checkout for pickup!</p>
+        </div>
+        
+        <div class="order-grid">
+            <div class="menu-sections">
+                <div class="menu-section">
+                    <h2>🍔 Burgers</h2>
+                    <div class="order-menu-grid" id="burgersGrid"></div>
+                </div>
+                <div class="menu-section">
+                    <h2>🌭 Hot Dogs</h2>
+                    <div class="order-menu-grid" id="hotdogsGrid"></div>
+                </div>
+                <div class="menu-section">
+                    <h2>🍟 Sides</h2>
+                    <div class="order-menu-grid" id="sidesGrid"></div>
+                </div>
+                <div class="menu-section">
+                    <h2>🥤 Drinks</h2>
+                    <div class="order-menu-grid" id="drinksGrid"></div>
+                </div>
+            </div>
+            
+            <aside class="cart-sidebar">
+                <h2>🛒 Your Cart <span id="cartCount" style="color: var(--primary-red)">(0)</span></h2>
+                <div class="cart-items-container" id="cartItems">
+                    <div class="empty-cart">Your cart is empty</div>
+                </div>
+                <div class="cart-total">
+                    <span>Total:</span>
+                    <span id="cartTotal">$0.00</span>
+                </div>
+                <button class="btn btn-primary checkout-btn" onclick="goToCheckout()">Checkout →</button>
+            </aside>
+        </div>
+    </div>
+
+    <script src="js/supabase.js"></script>
+    <script src="js/orders.js"></script>
+    <script>
+        // Load menu items for ordering
+        async function loadOrderMenu() {
+            try {
+                const items = await supabaseClient.getMenuItems();
+                
+                const categories = {
+                    burgersGrid: 'Burgers',
+                    hotdogsGrid: 'Hot Dogs',
+                    sidesGrid: 'Sides',
+                    drinksGrid: 'Drinks'
+                };
+                
+                for (const [elementId, category] of Object.entries(categories)) {
+                    const categoryItems = items.filter(i => i.category === category);
+                    document.getElementById(elementId).innerHTML = categoryItems.map(item => `
+                        <div class="order-item">
+                            <span class="order-item-name">${item.name}</span>
+                            <span class="order-item-price">$${parseFloat(item.price).toFixed(2)}</span>
+                            <button class="add-btn" onclick="addToCart(${JSON.stringify(item).replace(/"/g, '&quot;')})">Add</button>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading menu:', error);
+            }
+        }
+        
+        function goToCheckout() {
+            if (cart.length === 0) {
+                alert('Your cart is empty!');
+                return;
+            }
+            window.location.href = 'checkout.html';
+        }
+        
+        loadOrderMenu();
+    </script>
+</body>
+</html>

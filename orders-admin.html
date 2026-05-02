@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders Admin | Big Buns Burger</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .orders-admin { padding: 80px 20px 40px; max-width: 1000px; margin: 0 auto; }
+        .orders-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .orders-header h1 { color: var(--primary-red); }
+        
+        .filter-tabs { display: flex; gap: 10px; margin-bottom: 25px; }
+        .filter-tab { padding: 10px 20px; border: 2px solid var(--border-color); border-radius: 25px; cursor: pointer; font-weight: 600; background: var(--white); }
+        .filter-tab:hover, .filter-tab.active { background: var(--primary-red); color: var(--white); border-color: var(--primary-red); }
+        
+        .orders-list { display: flex; flex-direction: column; gap: 15px; }
+        
+        .order-card { background: var(--white); border-radius: 12px; padding: 20px; box-shadow: var(--shadow); border-left: 5px solid var(--border-color); }
+        .order-card.pending { border-left-color: #FF9800; }
+        .order-card.claimed { border-left-color: #2196F3; }
+        .order-card.completed { border-left-color: #4CAF50; }
+        .order-card.rejected { border-left-color: #F44336; }
+        
+        .order-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
+        .order-id { font-weight: 700; font-size: 1.1rem; }
+        .order-pickup { font-size: 1.3rem; font-weight: 700; color: var(--primary-red); }
+        .order-time { font-size: 0.85rem; color: var(--medium-gray); }
+        
+        .order-items-list { margin: 15px 0; padding: 15px; background: var(--light-gray); border-radius: 8px; }
+        .order-item-row { display: flex; justify-content: space-between; padding: 5px 0; }
+        
+        .order-total { font-size: 1.2rem; font-weight: 700; text-align: right; margin: 15px 0; }
+        
+        .order-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .order-actions button { padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        
+        .btn-claim { background: #2196F3; color: var(--white); border: none; }
+        .btn-complete { background: #4CAF50; color: var(--white); border: none; }
+        .btn-reject { background: #F44336; color: var(--white); border: none; }
+        
+        .no-orders { text-align: center; padding: 60px; color: var(--medium-gray); font-size: 1.1rem; }
+        
+        .refresh-btn { padding: 10px 20px; background: var(--light-gray); border: none; border-radius: 8px; cursor: pointer; }
+        .auto-refresh { font-size: 0.85rem; color: var(--medium-gray); }
+    </style>
+</head>
+<body>
+    <nav class="navbar scrolled">
+        <div class="nav-container">
+            <a href="index.html" class="logo">Big Buns Burger</a>
+            <div class="nav-right">
+                <a href="index.html">Home</a>
+                <a href="orders-admin.html">Orders</a>
+                <a href="admin.html">Menu Admin</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="orders-admin">
+        <div class="orders-header">
+            <h1>📋 Orders</h1>
+            <div>
+                <button class="refresh-btn" onclick="loadOrders()">🔄 Refresh</button>
+                <span class="auto-refresh">Auto-refreshs every 10s</span>
+            </div>
+        </div>
+        
+        <div class="filter-tabs">
+            <button class="filter-tab active" onclick="filterOrders('all')">All</button>
+            <button class="filter-tab" onclick="filterOrders('pending')">Pending</button>
+            <button class="filter-tab" onclick="filterOrders('claimed')">Claimed</button>
+            <button class="filter-tab" onclick="filterOrders('completed')">Completed</button>
+        </div>
+        
+        <div class="orders-list" id="ordersList"></div>
+    </div>
+
+    <script src="js/supabase.js"></script>
+    <script>
+        let allOrders = [];
+        let currentFilter = 'all';
+        
+        async function loadOrders() {
+            try {
+                allOrders = await supabaseClient.getAllOrders();
+                renderOrders();
+            } catch (error) {
+                console.error('Error loading orders:', error);
+            }
+        }
+        
+        function filterOrders(status) {
+            currentFilter = status;
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.textContent.toLowerCase().includes(status));
+            });
+            renderOrders();
+        }
+        
+        function renderOrders() {
+            const ordersList = document.getElementById('ordersList');
+            let filtered = currentFilter === 'all' ? allOrders : allOrders.filter(o => o.status === currentFilter);
+            
+            if (filtered.length === 0) {
+                ordersList.innerHTML = '<div class="no-orders">No orders found</div>';
+                return;
+            }
+            
+            ordersList.innerHTML = filtered.map(order => {
+                const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+                const time = new Date(order.created_at).toLocaleString();
+                
+                return `
+                    <div class="order-card ${order.status}">
+                        <div class="order-header-row">
+                            <div>
+                                <div class="order-time">${time}</div>
+                                <div class="order-id">Order #${order.id.slice(0, 8)}</div>
+                            </div>
+                            <div class="order-pickup">🎯 ${order.pickup_name}</div>
+                        </div>
+                        
+                        <div class="order-items-list">
+                            ${items.map(item => `
+                                <div class="order-item-row">
+                                    <span>${item.qty}x ${item.name}</span>
+                                    <span>$${(item.price * item.qty).toFixed(2)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div class="order-total">Total: $${parseFloat(order.total).toFixed(2)}</div>
+                        
+                        <div class="order-status" style="text-align: center; margin-bottom: 10px; padding: 8px; background: ${getStatusColor(order.status)}; color: white; border-radius: 5px;">
+                            ${order.status.toUpperCase()}
+                        </div>
+                        
+                        <div class="order-actions">
+                            ${order.status === 'pending' ? `<button class="btn-claim" onclick="updateStatus('${order.id}', 'claimed')">Mark Claimed</button>` : ''}
+                            ${order.status === 'claimed' ? `<button class="btn-complete" onclick="updateStatus('${order.id}', 'completed')">Complete Order</button>` : ''}
+                            ${order.status !== 'completed' && order.status !== 'rejected' ? `<button class="btn-reject" onclick="updateStatus('${order.id}', 'rejected')">Reject</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function getStatusColor(status) {
+            const colors = { pending: '#FF9800', claimed: '#2196F3', completed: '#4CAF50', rejected: '#F44336' };
+            return colors[status] || '#757575';
+        }
+        
+        async function updateStatus(orderId, newStatus) {
+            if (!confirm(`Mark this order as ${newStatus}?`)) return;
+            
+            try {
+                await supabaseClient.updateOrderStatus(orderId, newStatus);
+                loadOrders();
+            } catch (error) {
+                console.error('Error updating order:', error);
+                alert('Failed to update order');
+            }
+        }
+        
+        // Auto-refresh every 10 seconds
+        loadOrders();
+        setInterval(loadOrders, 10000);
+    </script>
+</body>
+</html>

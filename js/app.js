@@ -37,6 +37,18 @@ async function loadMenu() {
     const menuGrid = document.getElementById('menuGrid');
 
     try {
+        menuGrid.innerHTML = Array(6).fill(`
+            <div class="menu-card skeleton-card">
+                <div class="skeleton-img"></div>
+                <div class="menu-card-content">
+                    <div class="skeleton-text skeleton-category"></div>
+                    <div class="skeleton-text skeleton-title"></div>
+                    <div class="skeleton-text skeleton-desc"></div>
+                    <div class="skeleton-text skeleton-price"></div>
+                </div>
+            </div>
+        `).join('');
+
         const items = await supabaseClient.getMenuItems();
 
         if (!items || items.length === 0) {
@@ -79,6 +91,18 @@ function initMenuFilter() {
             const menuGrid = document.getElementById('menuGrid');
 
             try {
+                menuGrid.innerHTML = Array(6).fill(`
+                    <div class="menu-card skeleton-card">
+                        <div class="skeleton-img"></div>
+                        <div class="menu-card-content">
+                            <div class="skeleton-text skeleton-category"></div>
+                            <div class="skeleton-text skeleton-title"></div>
+                            <div class="skeleton-text skeleton-desc"></div>
+                            <div class="skeleton-text skeleton-price"></div>
+                        </div>
+                    </div>
+                `).join('');
+
                 let items;
                 if (category === 'all') {
                     items = await supabaseClient.getMenuItems();

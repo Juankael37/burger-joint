@@ -138,26 +138,56 @@ function handleImageFile(file) {
         return;
     }
 
-    // Upload to Supabase Storage
     const uploadZone = document.getElementById('imageUploadZone');
     uploadZone.style.opacity = '0.5';
 
-    supabaseClient.uploadImage(file).then(imageUrl => {
-        currentImageData = imageUrl;
-        const imagePreview = document.getElementById('imagePreview');
-        const previewImg = document.getElementById('previewImg');
-        const uploadPlaceholder = document.querySelector('.upload-placeholder');
+    // Compress image before upload
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
 
-        previewImg.src = imageUrl;
-        imagePreview.classList.add('show');
-        uploadPlaceholder.style.display = 'none';
-        uploadZone.style.opacity = '1';
-        showToast('Image uploaded!', 'success');
-    }).catch(error => {
-        console.error('Upload error:', error);
-        uploadZone.style.opacity = '1';
-        showToast('Failed to upload image', 'error');
-    });
+            const MAX_WIDTH = 800;
+            if (width > MAX_WIDTH) {
+                height = Math.round((height * MAX_WIDTH) / width);
+                width = MAX_WIDTH;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob((blob) => {
+                const compressedFile = new File([blob], file.name, {
+                    type: 'image/jpeg',
+                    lastModified: Date.now()
+                });
+
+                supabaseClient.uploadImage(compressedFile).then(imageUrl => {
+                    currentImageData = imageUrl;
+                    const imagePreview = document.getElementById('imagePreview');
+                    const previewImg = document.getElementById('previewImg');
+                    const uploadPlaceholder = document.querySelector('.upload-placeholder');
+
+                    previewImg.src = imageUrl;
+                    imagePreview.classList.add('show');
+                    uploadPlaceholder.style.display = 'none';
+                    uploadZone.style.opacity = '1';
+                    showToast('Image uploaded and compressed!', 'success');
+                }).catch(error => {
+                    console.error('Upload error:', error);
+                    uploadZone.style.opacity = '1';
+                    showToast('Failed to upload image', 'error');
+                });
+            }, 'image/jpeg', 0.8);
+        };
+    };
 }
 
 function initCategoryFilter() {
