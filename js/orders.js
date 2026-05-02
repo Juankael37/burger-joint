@@ -81,7 +81,8 @@ const supabaseClient = {
 // Cart management
 let cart = JSON.parse(localStorage.getItem('bigBunsCart')) || [];
 
-function addToCart(item) {
+// Make addToCart global
+window.addToCart = function(item) {
     const existingItem = cart.find(i => i.name === item.name);
     if (existingItem) {
         existingItem.qty += 1;
@@ -90,7 +91,8 @@ function addToCart(item) {
     }
     saveCart();
     updateCartUI();
-}
+    alert(item.name + ' added to cart!');
+};
 
 function removeFromCart(itemName) {
     cart = cart.filter(i => i.name !== itemName);
