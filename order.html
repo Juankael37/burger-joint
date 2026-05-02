@@ -107,17 +107,27 @@
     <script src="js/supabase.js"></script>
     <script src="js/orders.js"></script>
     <script>
-        // Fallback menu data
+        // Fallback menu data - matching actual menu
         const defaultMenuItems = [
+            // Burgers
             { id: 'b1', category: 'Burgers', name: 'Classic Burger', price: 9.49 },
             { id: 'b2', category: 'Burgers', name: 'Bacon Burger', price: 10.99 },
-            { id: 'b3', category: 'Burgers', name: 'Cheeseburger', price: 9.99 },
-            { id: 'h1', category: 'Hot Dogs', name: 'Hot Dog', price: 6.49 },
+            { id: 'b3', category: 'Burgers', name: 'Little Cheeseburger', price: 7.99 },
+            { id: 'b4', category: 'Burgers', name: 'Bacon Cheeseburger', price: 11.99 },
+            { id: 'b5', category: 'Burgers', name: 'Veggie Burger', price: 10.49 },
+            // Hot Dogs
+            { id: 'h1', category: 'Hot Dogs', name: 'Regular Hot Dog', price: 6.49 },
             { id: 'h2', category: 'Hot Dogs', name: 'Bacon Dog', price: 7.99 },
-            { id: 's1', category: 'Sides', name: 'Fries', price: 4.49 },
-            { id: 's2', category: 'Sides', name: 'Onion Rings', price: 5.49 },
-            { id: 'd1', category: 'Drinks', name: 'Soft Drink', price: 2.99 },
-            { id: 'd2', category: 'Drinks', name: 'Milkshake', price: 5.99 }
+            { id: 'h3', category: 'Hot Dogs', name: 'Cheese Dog', price: 7.49 },
+            // Sides
+            { id: 's1', category: 'Sides', name: 'Little Fries', price: 4.49 },
+            { id: 's2', category: 'Sides', name: 'Regular Fries', price: 5.99 },
+            { id: 's3', category: 'Sides', name: 'Cheese Fries', price: 7.49 },
+            { id: 's4', category: 'Sides', name: 'Onion Rings', price: 5.49 },
+            // Drinks
+            { id: 'd1', category: 'Drinks', name: 'Small Drink', price: 2.99 },
+            { id: 'd2', category: 'Drinks', name: 'Large Drink', price: 3.49 },
+            { id: 'd3', category: 'Drinks', name: 'Milkshake', price: 5.99 }
         ];
 
         // Load menu items for ordering
