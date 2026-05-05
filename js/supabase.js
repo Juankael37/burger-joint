@@ -1,6 +1,19 @@
 const supabaseUrl = 'https://epbzzntbppyyxeisuvtr.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwYnp6bnRicHB5eXhlaXN1dnRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NjY2MzIsImV4cCI6MjA5MzI0MjYzMn0.w8GcCOAOIhi7Yx7Rhc8i8qszemDI6i0An9qSlTUye2Y';
 
+/**
+ * Helper: validates fetch response and throws a descriptive error on failure.
+ * Prevents silent failures where error JSON was mistakenly used as valid data.
+ */
+async function _handleResponse(response) {
+    if (!response.ok) {
+        const err = await response.text();
+        console.error('Supabase API error:', response.status, err);
+        throw new Error(`API error ${response.status}: ${err}`);
+    }
+    return response;
+}
+
 const supabaseClient = {
     async getBranches() {
         const response = await fetch(`${supabaseUrl}/rest/v1/branches?is_active=eq.true&order=name`, {
@@ -9,6 +22,7 @@ const supabaseClient = {
                 'Authorization': `Bearer ${supabaseKey}`
             }
         });
+        await _handleResponse(response);
         return response.json();
     },
 
@@ -19,6 +33,7 @@ const supabaseClient = {
                 'Authorization': `Bearer ${supabaseKey}`
             }
         });
+        await _handleResponse(response);
         return response.json();
     },
 
@@ -29,6 +44,7 @@ const supabaseClient = {
                 'Authorization': `Bearer ${supabaseKey}`
             }
         });
+        await _handleResponse(response);
         return response.json();
     },
 
@@ -42,6 +58,7 @@ const supabaseClient = {
                 }
             }
         );
+        await _handleResponse(response);
         const items = await response.json();
         
         if (!branchSlug) return items;
@@ -59,6 +76,7 @@ const supabaseClient = {
                 'Authorization': `Bearer ${supabaseKey}`
             }
         });
+        await _handleResponse(response);
         return response.json();
     },
 
@@ -73,6 +91,7 @@ const supabaseClient = {
             },
             body: JSON.stringify(item)
         });
+        await _handleResponse(response);
         return response.json();
     },
 
@@ -87,6 +106,7 @@ const supabaseClient = {
             },
             body: JSON.stringify(updates)
         });
+        await _handleResponse(response);
         return response.json();
     },
 
@@ -115,12 +135,7 @@ const supabaseClient = {
             body: JSON.stringify({ unavailable_at_branches: unavailable })
         });
         
-        if (!response.ok) {
-            const err = await response.text();
-            console.error('Update failed:', err);
-            throw new Error(err);
-        }
-        
+        await _handleResponse(response);
         return response.json();
     },
 
@@ -131,6 +146,7 @@ const supabaseClient = {
                 'Authorization': `Bearer ${supabaseKey}`
             }
         });
+        await _handleResponse(response);
         const items = await response.json();
         return items[0] || null;
     },
@@ -143,11 +159,13 @@ const supabaseClient = {
                 'Authorization': `Bearer ${supabaseKey}`
             }
         });
+        await _handleResponse(response);
         return response;
     },
 
+    // Fixed: only publishes draft items instead of updating every row
     async publishAll() {
-        const response = await fetch(`${supabaseUrl}/rest/v1/menu_items`, {
+        const response = await fetch(`${supabaseUrl}/rest/v1/menu_items?status=eq.draft`, {
             method: 'PATCH',
             headers: {
                 'apikey': supabaseKey,
@@ -157,6 +175,7 @@ const supabaseClient = {
             },
             body: JSON.stringify({ status: 'published' })
         });
+        await _handleResponse(response);
         return response.json();
     },
 
@@ -174,10 +193,7 @@ const supabaseClient = {
             body: file
         });
 
-        if (!response.ok) {
-            throw new Error('Upload failed');
-        }
-
+        await _handleResponse(response);
         return `${supabaseUrl}/storage/v1/object/public/menu-images/${filePath}`;
     },
 
@@ -192,6 +208,7 @@ const supabaseClient = {
             },
             body: JSON.stringify(branch)
         });
+        await _handleResponse(response);
         return response.json();
     },
 
@@ -206,6 +223,7 @@ const supabaseClient = {
             },
             body: JSON.stringify(updates)
         });
+        await _handleResponse(response);
         return response.json();
     },
 
@@ -217,6 +235,62 @@ const supabaseClient = {
                 'Authorization': `Bearer ${supabaseKey}`
             }
         });
+        await _handleResponse(response);
+        return response;
+    },
+
+    // Order operations (used by checkout.html)
+    async createOrder(orderData) {
+        const response = await fetch(`${supabaseUrl}/rest/v1/orders`, {
+            method: 'POST',
+            headers: {
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation'
+            },
+            body: JSON.stringify(orderData)
+        });
+        await _handleResponse(response);
+        return response.json();
+    },
+
+    async getOrders() {
+        const response = await fetch(`${supabaseUrl}/rest/v1/orders?order=created_at.desc`, {
+            headers: {
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`
+            }
+        });
+        await _handleResponse(response);
+        return response.json();
+    },
+
+    async updateOrderStatus(orderId, newStatus) {
+        const response = await fetch(`${supabaseUrl}/rest/v1/orders?id=eq.${orderId}`, {
+            method: 'PATCH',
+            headers: {
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({ status: newStatus })
+        });
+        await _handleResponse(response);
+        return response;
+    },
+
+    async deleteOrder(orderId) {
+        const response = await fetch(`${supabaseUrl}/rest/v1/orders?id=eq.${orderId}`, {
+            method: 'DELETE',
+            headers: {
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`,
+                'Prefer': 'return=minimal'
+            }
+        });
+        await _handleResponse(response);
         return response;
     }
 };

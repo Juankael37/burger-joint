@@ -158,11 +158,11 @@ function initAdminEventListeners() {
     const addItemBtn = document.getElementById('addItemBtn');
     if (addItemBtn) addItemBtn.addEventListener('click', () => openModal());
     
-    const closeModal = document.getElementById('closeModal');
-    if (closeModal) closeModal.addEventListener('click', closeModal);
+    const closeModalBtn = document.getElementById('closeModal');
+    if (closeModalBtn) closeModalBtn.addEventListener('click', () => closeModal());
     
     const cancelBtn = document.getElementById('cancelBtn');
-    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', () => closeModal());
     
     const itemForm = document.getElementById('itemForm');
     if (itemForm) itemForm.addEventListener('submit', saveItem);
@@ -176,11 +176,11 @@ function initAdminEventListeners() {
     const previewBtn = document.getElementById('previewBtn');
     if (previewBtn) previewBtn.addEventListener('click', togglePreview);
 
-    const closeDeleteModal = document.getElementById('closeDeleteModal');
-    if (closeDeleteModal) closeDeleteModal.addEventListener('click', closeDeleteModal);
+    const closeDeleteBtn = document.getElementById('closeDeleteModal');
+    if (closeDeleteBtn) closeDeleteBtn.addEventListener('click', () => closeDeleteModal());
     
     const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-    if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+    if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', () => closeDeleteModal());
     
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
     if (confirmDeleteBtn) confirmDeleteBtn.addEventListener('click', confirmDelete);
