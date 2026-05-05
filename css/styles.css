@@ -736,22 +736,21 @@ input, select, textarea {
 
 .admin-header {
     background: var(--white);
-    box-shadow: var(--shadow);
-    padding: 12px 0;
     position: sticky;
     top: 0;
     z-index: 100;
+    border-bottom: 1px solid var(--border-color);
 }
 
+/* Top row: logo + nav */
 .admin-header-content {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 0 25px;
+    padding: 14px 25px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 20px;
-    flex-wrap: wrap;
 }
 
 .admin-logo {
@@ -759,66 +758,117 @@ input, select, textarea {
     align-items: center;
     gap: 10px;
     font-family: 'Poppins', sans-serif;
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     font-weight: 700;
-    color: var(--primary-red);
+    color: var(--dark-gray);
+    white-space: nowrap;
 }
 
-.logo-icon {
-    font-size: 1.5rem;
+.admin-logo .logo-icon {
+    font-size: 1.4rem;
 }
 
 .admin-nav {
     display: flex;
-    gap: 8px;
+    gap: 4px;
     flex-wrap: wrap;
 }
 
 .nav-tab {
-    padding: 10px 18px;
-    background: var(--light-gray);
-    border-radius: 8px;
+    padding: 8px 16px;
+    background: transparent;
+    border-radius: 6px;
     font-weight: 600;
-    color: var(--dark-gray);
+    color: var(--medium-gray);
     transition: var(--transition);
     text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.9rem;
+    gap: 5px;
+    font-size: 0.85rem;
+    border: 1px solid transparent;
 }
 
 .nav-tab:hover {
-    background: var(--primary-red);
-    color: var(--white);
+    background: var(--light-gray);
+    color: var(--dark-gray);
+    border-color: var(--border-color);
 }
 
 .nav-tab.active {
     background: var(--primary-red);
     color: var(--white);
+    border-color: var(--primary-red);
 }
 
+/* Bottom toolbar row: branch select + actions */
 .admin-actions {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 }
 
 .branch-select {
-    padding: 10px 14px;
-    border: 2px solid var(--primary-red);
+    padding: 8px 12px;
+    border: 2px solid var(--border-color);
     border-radius: 8px;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 600;
     background: var(--white);
     cursor: pointer;
-    min-width: 160px;
-    color: var(--primary-red);
+    min-width: 150px;
+    color: var(--dark-gray);
+    transition: var(--transition);
 }
 
 .branch-select:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.2);
+    border-color: var(--primary-red);
+    box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1);
+}
+
+/* Admin toolbar (second row below header) */
+.admin-toolbar {
+    background: var(--light-gray);
+    border-bottom: 1px solid var(--border-color);
+    padding: 10px 0;
+}
+
+.admin-toolbar-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 25px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+/* Availability select dropdown in admin cards */
+.availability-select {
+    width: 100%;
+    padding: 6px 8px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    background: var(--white);
+    cursor: pointer;
+    color: #2E7D32;
+    transition: var(--transition);
+    margin-top: 4px;
+}
+
+.availability-select:focus {
+    outline: none;
+    border-color: var(--primary-red);
+}
+
+.availability-select.status-unavailable {
+    color: #E65100;
+    border-color: #FFE0B2;
+    background: #FFF8E1;
 }
 
 .admin-main {

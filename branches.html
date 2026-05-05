@@ -8,76 +8,170 @@
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     <style>
-        body { background: var(--warm-white); }
-        .settings-container { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
-        .settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid var(--border-color); }
-        .settings-header h1 { font-family: 'Poppins', sans-serif; font-size: 1.8rem; color: var(--dark-gray); margin: 0; }
-        .back-btn { text-decoration: none; color: var(--primary-red); font-weight: 600; padding: 10px 20px; border: 2px solid var(--primary-red); border-radius: 8px; transition: all 0.3s; }
-        .back-btn:hover { background: var(--primary-red); color: var(--white); }
-        
-        .add-branch-form { background: var(--white); padding: 25px; border-radius: 12px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); margin-bottom: 30px; }
-        .add-branch-form h3 { margin: 0 0 20px 0; color: var(--dark-gray); font-size: 1.1rem; }
-        .form-row { display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
-        .form-input { flex: 1; min-width: 200px; padding: 12px 15px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 1rem; transition: border-color 0.3s; }
-        .form-input:focus { outline: none; border-color: var(--primary-red); }
-        
-        .branches-table { width: 100%; border-collapse: collapse; background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 15px rgba(0,0,0,0.08); }
-        .branches-table th { background: var(--primary-red); color: var(--white); padding: 16px; text-align: left; font-weight: 600; font-size: 0.95rem; }
-        .branches-table td { padding: 16px; border-bottom: 1px solid #eee; vertical-align: middle; }
-        .branches-table tr:last-child td { border-bottom: none; }
-        .branches-table tr:hover { background: #fafafa; }
-        
-        .branch-name-input { padding: 10px 12px; border: 2px solid #ddd; border-radius: 6px; font-size: 0.95rem; width: 220px; transition: border-color 0.3s; }
-        .branch-name-input:focus { border-color: var(--primary-red); outline: none; }
-        
-        .slug-code { background: #f5f5f5; padding: 4px 10px; border-radius: 4px; font-family: monospace; font-size: 0.9rem; color: var(--medium-gray); }
-        
-        .action-btns { display: flex; gap: 8px; flex-wrap: wrap; }
-        .btn-action { padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.3s; }
+        body { background: var(--light-gray); }
+
+        .branches-container { max-width: 900px; margin: 0 auto; padding: 30px 20px; }
+
+        .page-title { font-family: 'Poppins', sans-serif; font-size: 1.6rem; color: var(--dark-gray); margin: 0 0 25px 0; }
+
+        /* Add branch form */
+        .add-branch-card {
+            background: var(--white);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            margin-bottom: 25px;
+            border: 2px dashed var(--border-color);
+        }
+        .add-branch-card h3 { margin: 0 0 16px 0; color: var(--dark-gray); font-size: 1rem; }
+        .add-form-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+        .add-form-group { flex: 1; min-width: 180px; }
+        .add-form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--medium-gray); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .add-form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.3s;
+        }
+        .add-form-group input:focus { outline: none; border-color: var(--primary-red); }
+
+        /* Branch cards */
+        .branch-card {
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            margin-bottom: 16px;
+            overflow: hidden;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        .branch-card:hover { border-color: var(--border-color); }
+        .branch-card.editing { border-color: var(--primary-red); }
+
+        .branch-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 24px;
+            cursor: pointer;
+            gap: 15px;
+        }
+        .branch-card-header:hover { background: #fafafa; }
+
+        .branch-info { flex: 1; }
+        .branch-name-display { font-weight: 700; font-size: 1.05rem; color: var(--dark-gray); }
+        .branch-meta { display: flex; gap: 15px; margin-top: 4px; flex-wrap: wrap; }
+        .branch-meta span { font-size: 0.8rem; color: var(--medium-gray); }
+        .branch-meta .slug-badge { background: #f5f5f5; padding: 2px 8px; border-radius: 4px; font-family: monospace; font-size: 0.78rem; }
+
+        .branch-status-badge { padding: 5px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
+        .branch-status-badge.active { background: #E8F5E9; color: #2E7D32; }
+        .branch-status-badge.inactive { background: #FFEBEE; color: #C62828; }
+
+        .expand-icon { font-size: 1.2rem; color: var(--medium-gray); transition: transform 0.3s; }
+        .branch-card.open .expand-icon { transform: rotate(180deg); }
+
+        /* Expandable details */
+        .branch-details {
+            display: none;
+            padding: 0 24px 24px;
+            border-top: 1px solid var(--border-color);
+        }
+        .branch-card.open .branch-details { display: block; }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 20px;
+        }
+        .details-grid .field-group { display: flex; flex-direction: column; }
+        .details-grid .field-group.full-width { grid-column: 1 / -1; }
+        .field-group label { font-size: 0.78rem; font-weight: 600; color: var(--medium-gray); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .field-group input, .field-group textarea {
+            padding: 10px 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        .field-group input:focus, .field-group textarea:focus { outline: none; border-color: var(--primary-red); }
+        .field-group textarea { resize: vertical; min-height: 60px; }
+
+        .branch-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+            justify-content: space-between;
+        }
+        .branch-actions-left { display: flex; gap: 8px; }
+        .btn-sm { padding: 8px 18px; font-size: 0.85rem; font-weight: 600; border-radius: 6px; border: none; cursor: pointer; transition: all 0.3s; }
         .btn-save { background: #4CAF50; color: white; }
         .btn-save:hover { background: #388E3C; }
-        .btn-edit { background: var(--secondary-color); color: white; }
-        .btn-edit:hover { background: #1565C0; }
-        .btn-delete { background: #F44336; color: white; }
-        .btn-delete:hover { background: #D32F2F; }
-        
-        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
-        .status-badge.active { background: #E8F5E9; color: #2E7D32; }
-        .status-badge.inactive { background: #FFEBEE; color: #C62828; }
-        
-        .empty-state { text-align: center; padding: 40px; color: var(--medium-gray); }
-        .empty-state h3 { margin: 0 0 10px; color: var(--dark-gray); }
+        .btn-toggle { background: #FFF3E0; color: #E65100; }
+        .btn-toggle:hover { background: #FFE0B2; }
+        .btn-delete { background: #FFEBEE; color: #D32F2F; }
+        .btn-delete:hover { background: #D32F2F; color: white; }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--medium-gray); }
+        .empty-state h3 { margin: 0 0 8px; color: var(--dark-gray); }
+
+        @media (max-width: 600px) {
+            .details-grid { grid-template-columns: 1fr; }
+            .add-form-row { flex-direction: column; }
+            .add-form-group { min-width: 100%; }
+            .branch-card-header { flex-wrap: wrap; }
+        }
     </style>
 </head>
 <body>
-    <div class="settings-container">
-        <div class="settings-header">
-            <h1>Branch Settings</h1>
-            <a href="admin.html" class="back-btn">Back to Dashboard</a>
+    <!-- Admin Header (matches admin.html) -->
+    <header class="admin-header">
+        <div class="admin-header-content">
+            <div class="admin-logo">
+                <span class="logo-icon">🍔</span>
+                <span>Big Buns Burger</span>
+            </div>
+            <nav class="admin-nav">
+                <a href="admin.html" class="nav-tab">🍕 Menu Items</a>
+                <a href="orders-admin.html" class="nav-tab">📋 Orders</a>
+                <a href="branches.html" class="nav-tab active">🏪 Branches</a>
+                <a href="order.html" class="nav-tab" target="_blank">🛒 Order Page</a>
+                <a href="index.html" class="nav-tab" target="_blank">🌐 View Site</a>
+            </nav>
         </div>
+    </header>
 
-        <div class="add-branch-form">
-            <h3>Add New Branch</h3>
-            <div class="form-row">
-                <input type="text" id="newBranchName" class="form-input" placeholder="Branch Name (e.g., Downtown Branch)">
-                <input type="text" id="newBranchLocation" class="form-input" placeholder="Location (e.g., Downtown District)">
-                <button class="btn btn-primary" onclick="createBranch()">Add Branch</button>
+    <div class="branches-container">
+        <h1 class="page-title">🏪 Branch Settings</h1>
+
+        <!-- Add New Branch -->
+        <div class="add-branch-card">
+            <h3>➕ Add New Branch</h3>
+            <div class="add-form-row">
+                <div class="add-form-group">
+                    <label>Branch Name</label>
+                    <input type="text" id="newBranchName" placeholder="e.g., Downtown Branch">
+                </div>
+                <div class="add-form-group">
+                    <label>Location</label>
+                    <input type="text" id="newBranchLocation" placeholder="e.g., Downtown District">
+                </div>
+                <button class="btn btn-primary" onclick="createBranch()" style="white-space: nowrap; height: fit-content;">Add Branch</button>
             </div>
         </div>
 
-        <table class="branches-table">
-            <thead>
-                <tr>
-                    <th style="width: 25%;">Branch Name</th>
-                    <th style="width: 15%;">Slug</th>
-                    <th style="width: 20%;">Location</th>
-                    <th style="width: 15%;">Status</th>
-                    <th style="width: 25%;">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="branchesTableBody">
-            </tbody>
-        </table>
+        <!-- Branch List -->
+        <div id="branchesList">
+            <div class="empty-state">
+                <h3>Loading branches...</h3>
+            </div>
+        </div>
     </div>
 
     <div class="toast" id="toast">
@@ -89,45 +183,81 @@
         document.addEventListener('DOMContentLoaded', loadBranches);
 
         async function loadBranches() {
-            const tbody = document.getElementById('branchesTableBody');
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 30px;">Loading branches...</td></tr>';
+            const container = document.getElementById('branchesList');
+            container.innerHTML = '<div class="empty-state"><h3>Loading branches...</h3></div>';
             
             try {
                 const branches = await supabaseClient.getAllBranches();
                 console.log('Loaded branches:', branches);
                 
                 if (!branches || branches.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><h3>No branches found</h3><p>Add your first branch using the form above.</p></div></td></tr>';
+                    container.innerHTML = '<div class="empty-state"><h3>No branches yet</h3><p>Add your first branch using the form above.</p></div>';
                     return;
                 }
 
-                tbody.innerHTML = branches.map(branch => `
-                    <tr>
-                        <td>
-                            <input type="text" class="branch-name-input" id="name-${branch.id}" value="${escapeHtml(branch.name)}">
-                        </td>
-                        <td><span class="slug-code">${branch.slug}</span></td>
-                        <td>${branch.location ? escapeHtml(branch.location) : '-'}</td>
-                        <td>
-                            <span class="status-badge ${branch.is_active ? 'active' : 'inactive'}">
-                                ${branch.is_active ? 'Active' : 'Inactive'}
-                            </span>
-                        </td>
-                        <td>
-                            <div class="action-btns">
-                                <button class="btn-action btn-save" onclick="updateBranch('${branch.id}')">Save</button>
-                                <button class="btn-action btn-edit" onclick="toggleStatus('${branch.id}', ${!branch.is_active})">
-                                    ${branch.is_active ? 'Deactivate' : 'Activate'}
-                                </button>
-                                <button class="btn-action btn-delete" onclick="deleteBranch('${branch.id}', '${escapeHtml(branch.name)}')">Delete</button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join('');
+                container.innerHTML = branches.map(branch => renderBranchCard(branch)).join('');
             } catch (error) {
                 console.error('Error loading branches:', error);
-                tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><h3>Error loading branches</h3><p>' + error.message + '</p></div></td></tr>';
+                container.innerHTML = `<div class="empty-state"><h3>Error loading branches</h3><p>${error.message}</p></div>`;
             }
+        }
+
+        function renderBranchCard(branch) {
+            return `
+            <div class="branch-card" id="branch-${branch.id}">
+                <div class="branch-card-header" onclick="toggleBranchCard('${branch.id}')">
+                    <div class="branch-info">
+                        <div class="branch-name-display">${escapeHtml(branch.name)}</div>
+                        <div class="branch-meta">
+                            <span class="slug-badge">${branch.slug}</span>
+                            ${branch.location ? `<span>📍 ${escapeHtml(branch.location)}</span>` : ''}
+                            ${branch.phone ? `<span>📞 ${escapeHtml(branch.phone)}</span>` : ''}
+                        </div>
+                    </div>
+                    <span class="branch-status-badge ${branch.is_active ? 'active' : 'inactive'}">
+                        ${branch.is_active ? '● Active' : '● Inactive'}
+                    </span>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="branch-details">
+                    <div class="details-grid">
+                        <div class="field-group">
+                            <label>Branch Name</label>
+                            <input type="text" id="name-${branch.id}" value="${escapeHtml(branch.name)}">
+                        </div>
+                        <div class="field-group">
+                            <label>Slug (URL identifier)</label>
+                            <input type="text" id="slug-${branch.id}" value="${branch.slug}" style="background: #f9f9f9; color: #999;" readonly>
+                        </div>
+                        <div class="field-group">
+                            <label>Location / Area</label>
+                            <input type="text" id="location-${branch.id}" value="${escapeHtml(branch.location || '')}" placeholder="e.g., Mall of Asia Complex">
+                        </div>
+                        <div class="field-group">
+                            <label>Phone Number</label>
+                            <input type="text" id="phone-${branch.id}" value="${escapeHtml(branch.phone || '')}" placeholder="e.g., +63 917 123 4567">
+                        </div>
+                        <div class="field-group full-width">
+                            <label>Full Address</label>
+                            <input type="text" id="address-${branch.id}" value="${escapeHtml(branch.address || '')}" placeholder="e.g., 123 Main St., Makati City">
+                        </div>
+                    </div>
+                    <div class="branch-actions">
+                        <div class="branch-actions-left">
+                            <button class="btn-sm btn-save" onclick="saveBranch('${branch.id}')">💾 Save Changes</button>
+                            <button class="btn-sm btn-toggle" onclick="toggleStatus('${branch.id}', ${!branch.is_active})">
+                                ${branch.is_active ? '⏸ Deactivate' : '▶ Activate'}
+                            </button>
+                        </div>
+                        <button class="btn-sm btn-delete" onclick="deleteBranch('${branch.id}', '${escapeHtml(branch.name)}')">🗑 Delete</button>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        function toggleBranchCard(id) {
+            const card = document.getElementById(`branch-${id}`);
+            card.classList.toggle('open');
         }
 
         function escapeHtml(text) {
@@ -167,29 +297,35 @@
                 locationInput.value = '';
                 showToast('Branch created successfully!');
                 loadBranches();
-                parent.postMessage({ type: 'branchUpdated' }, '*');
             } catch (error) {
                 console.error('Error creating branch:', error);
-                showToast('Failed to create branch', 'error');
+                showToast('Failed to create branch: ' + error.message, 'error');
             }
         }
 
-        async function updateBranch(branchId) {
-            const input = document.getElementById(`name-${branchId}`);
-            const newName = input.value.trim();
+        async function saveBranch(branchId) {
+            const name = document.getElementById(`name-${branchId}`).value.trim();
+            const location = document.getElementById(`location-${branchId}`).value.trim();
+            const phone = document.getElementById(`phone-${branchId}`).value.trim();
+            const address = document.getElementById(`address-${branchId}`).value.trim();
             
-            if (!newName) {
+            if (!name) {
                 showToast('Branch name cannot be empty', 'error');
                 return;
             }
 
             try {
-                await supabaseClient.updateBranch(branchId, { name: newName });
-                showToast('Branch updated!');
-                parent.postMessage({ type: 'branchUpdated' }, '*');
+                await supabaseClient.updateBranch(branchId, { 
+                    name, 
+                    location: location || null,
+                    phone: phone || null,
+                    address: address || null
+                });
+                showToast('Branch updated successfully!');
+                loadBranches();
             } catch (error) {
                 console.error('Error updating branch:', error);
-                showToast('Failed to update branch', 'error');
+                showToast('Failed to update branch: ' + error.message, 'error');
             }
         }
 
@@ -198,7 +334,6 @@
                 await supabaseClient.updateBranch(branchId, { is_active: makeActive });
                 showToast(`Branch ${makeActive ? 'activated' : 'deactivated'}!`);
                 loadBranches();
-                parent.postMessage({ type: 'branchUpdated' }, '*');
             } catch (error) {
                 console.error('Error toggling status:', error);
                 showToast('Failed to update status', 'error');
@@ -212,10 +347,9 @@
                 await supabaseClient.deleteBranch(branchId);
                 showToast('Branch deleted!');
                 loadBranches();
-                parent.postMessage({ type: 'branchUpdated' }, '*');
             } catch (error) {
                 console.error('Error deleting branch:', error);
-                showToast('Failed to delete branch', 'error');
+                showToast('Failed to delete branch: ' + error.message, 'error');
             }
         }
 

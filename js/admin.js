@@ -77,23 +77,32 @@ function switchAdminBranch(branchId) {
     renderAdminItems();
 }
 
-function isItemUnavailableAtBranch(item, branchId) {
-    if (!branchId) return false;
-    const unavailable = item.unavailable_at_branches || [];
-    return unavailable.includes(branchId);
+/**
+ * Parse the unavailable_at_branches array for a specific branch.
+ * Returns { unavailable: bool, reason: 'temp_unavailable' | 'sold_out' | null }
+ * Supports legacy plain slugs ("main") and encoded ("main:sold_out").
+ */
+function getUnavailabilityInfo(item, branchSlug) {
+    if (!branchSlug) return { unavailable: false, reason: null };
+    const entries = item.unavailable_at_branches || [];
+    for (const entry of entries) {
+        const parts = entry.split(':');
+        if (parts[0] === branchSlug) {
+            return { unavailable: true, reason: parts[1] || 'temp_unavailable' };
+        }
+    }
+    return { unavailable: false, reason: null };
 }
 
-function toggleItemAvailability(itemId, branchSlug) {
-    const item = menuItems.find(i => i.id === itemId);
-    if (!item) return;
-    
-    const unavailable = item.unavailable_at_branches || [];
-    const isCurrentlyUnavailable = unavailable.includes(branchSlug);
-    const makeUnavailable = !isCurrentlyUnavailable;
-    
-    supabaseClient.toggleItemAvailability(itemId, branchSlug, makeUnavailable).then(() => {
-        loadAdminItems();
-    });
+async function setItemAvailabilityStatus(itemId, branchSlug, reason) {
+    try {
+        await supabaseClient.setItemAvailability(itemId, branchSlug, reason);
+        await loadAdminItems();
+        showToast('Availability updated', 'success');
+    } catch (error) {
+        console.error('Error updating availability:', error);
+        showToast('Failed to update availability', 'error');
+    }
 }
 
 function initLogin() {
@@ -329,8 +338,9 @@ function renderAdminItems() {
     }
 
     itemsGrid.innerHTML = filteredItems.map(item => {
-        const unavailableAtBranch = currentAdminBranch ? isItemUnavailableAtBranch(item, currentAdminBranch) : false;
+        const info = currentAdminBranch ? getUnavailabilityInfo(item, currentAdminBranch) : { unavailable: false, reason: null };
         const branchName = branchesData[currentAdminBranch]?.name || 'Selected Branch';
+        const currentStatus = info.unavailable ? info.reason : 'available';
         
         return `
         <div class="admin-item-card">
@@ -343,13 +353,12 @@ function renderAdminItems() {
                 ${currentAdminBranch ? `
                 <div class="branch-availability">
                     <span class="availability-label">${branchName}:</span>
-                    <label class="toggle-switch" onclick="toggleItemAvailability('${item.id}', '${currentAdminBranch}')">
-                        <input type="checkbox" data-item-id="${item.id}" data-branch-id="${currentAdminBranch}" ${!unavailableAtBranch ? 'checked' : ''}>
-                        <span class="toggle-slider"></span>
-                    </label>
-                    <span class="availability-text ${unavailableAtBranch ? 'unavailable-text' : ''}">
-                        ${unavailableAtBranch ? 'Unavailable' : 'Available'}
-                    </span>
+                    <select class="availability-select ${currentStatus !== 'available' ? 'status-unavailable' : ''}" 
+                            onchange="setItemAvailabilityStatus('${item.id}', '${currentAdminBranch}', this.value)">
+                        <option value="available" ${currentStatus === 'available' ? 'selected' : ''}>✅ Available</option>
+                        <option value="temp_unavailable" ${currentStatus === 'temp_unavailable' ? 'selected' : ''}>⏳ Temporarily Unavailable</option>
+                        <option value="sold_out" ${currentStatus === 'sold_out' ? 'selected' : ''}>🚫 Sold Out Today</option>
+                    </select>
                 </div>
                 ` : ''}
                 <div class="admin-item-actions">

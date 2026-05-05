@@ -42,15 +42,19 @@
                     <a href="order.html" class="nav-tab" target="_blank">🛒 Order Page</a>
                     <a href="index.html" class="nav-tab" target="_blank">🌐 View Site</a>
                 </nav>
+            </div>
+        </header>
+        <div class="admin-toolbar">
+            <div class="admin-toolbar-content">
                 <div class="admin-actions">
                     <select id="adminBranchSelect" class="branch-select" onchange="switchAdminBranch(this.value)">
                         <option value="">All Branches</option>
                     </select>
                     <button class="btn btn-primary" id="publishBtn">🚀 Publish Menu</button>
-                    <button class="btn btn-danger" id="logoutBtn">Logout</button>
                 </div>
+                <button class="btn btn-danger" id="logoutBtn" style="font-size: 0.85rem; padding: 8px 16px;">Logout</button>
             </div>
-        </header>
+        </div>
 
         <!-- Admin Main Content -->
         <div class="admin-main">

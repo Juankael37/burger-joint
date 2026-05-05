@@ -48,6 +48,8 @@ const supabaseClient = {
         return response.json();
     },
 
+    // Returns ALL published items — unavailable ones are kept so the order page
+    // can show them grayed-out with a stamp instead of hiding them.
     async getMenuItemsForBranch(branchSlug) {
         const response = await fetch(
             `${supabaseUrl}/rest/v1/menu_items?status=eq.published&order=category,created_at`, 
@@ -59,14 +61,7 @@ const supabaseClient = {
             }
         );
         await _handleResponse(response);
-        const items = await response.json();
-        
-        if (!branchSlug) return items;
-        
-        return items.filter(item => {
-            const unavailable = item.unavailable_at_branches || [];
-            return !unavailable.includes(branchSlug);
-        });
+        return response.json();
     },
 
     async getAllMenuItems() {
@@ -110,18 +105,27 @@ const supabaseClient = {
         return response.json();
     },
 
-    async toggleItemAvailability(itemId, branchId, makeUnavailable) {
+    /**
+     * Set item availability at a branch.
+     * reason: 'available' | 'temp_unavailable' | 'sold_out'
+     * Entries stored as "branchSlug:reason" in the unavailable_at_branches array.
+     * Legacy plain slugs ("main") are treated as temp_unavailable.
+     */
+    async setItemAvailability(itemId, branchSlug, reason) {
         const item = await this.getMenuItemById(itemId);
         if (!item) return null;
         
         let unavailable = item.unavailable_at_branches || [];
         
-        if (makeUnavailable) {
-            if (!unavailable.includes(branchId)) {
-                unavailable.push(branchId);
-            }
-        } else {
-            unavailable = unavailable.filter(id => id !== branchId);
+        // Remove any existing entry for this branch (plain or encoded)
+        unavailable = unavailable.filter(entry => {
+            const entrySlug = entry.split(':')[0];
+            return entrySlug !== branchSlug;
+        });
+        
+        // Add encoded entry if not "available"
+        if (reason && reason !== 'available') {
+            unavailable.push(`${branchSlug}:${reason}`);
         }
         
         const response = await fetch(`${supabaseUrl}/rest/v1/menu_items?id=eq.${itemId}`, {
