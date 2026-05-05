@@ -48,21 +48,6 @@ const supabaseClient = {
         return response.json();
     },
 
-    // Returns ALL published items — unavailable ones are kept so the order page
-    // can show them grayed-out with a stamp instead of hiding them.
-    async getMenuItemsForBranch(branchSlug) {
-        const response = await fetch(
-            `${supabaseUrl}/rest/v1/menu_items?status=eq.published&order=category,created_at`, 
-            {
-                headers: {
-                    'apikey': supabaseKey,
-                    'Authorization': `Bearer ${supabaseKey}`
-                }
-            }
-        );
-        await _handleResponse(response);
-        return response.json();
-    },
 
     async getAllMenuItems() {
         const response = await fetch(`${supabaseUrl}/rest/v1/menu_items?order=category,created_at`, {

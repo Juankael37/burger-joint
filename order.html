@@ -96,8 +96,6 @@
                 font-size: 1.1rem;
             }
         }
-        .order-item.unavailable-item { opacity: 0.6; }
-        .order-item.unavailable-item .add-btn { background: var(--medium-gray); cursor: not-allowed; }
 
         /* Unavailable item stamp styles */
         .order-item-unavailable {
@@ -147,7 +145,6 @@
             border: 3px solid #E65100;
             background: rgba(230, 81, 0, 0.08);
         }
-        .unavailable-label { display: block; color: var(--primary-red); font-size: 0.75rem; font-weight: 600; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -209,7 +206,7 @@
                 </div>
                 <div class="cart-total">
                     <span>Total:</span>
-                    <span id="cartTotal">$0.00</span>
+                    <span id="cartTotal">₱0.00</span>
                 </div>
                 <button class="btn btn-primary checkout-btn" onclick="goToCheckout()">Checkout →</button>
             </aside>
@@ -325,9 +322,7 @@
             const branchSlug = localStorage.getItem('bigBunsBranch');
             
             try {
-                const fetchedItems = branchSlug 
-                    ? await supabaseClient.getMenuItemsForBranch(branchSlug)
-                    : await supabaseClient.getMenuItems();
+                const fetchedItems = await supabaseClient.getMenuItems();
                     
                 if (fetchedItems && fetchedItems.length > 0) {
                     items = fetchedItems;
@@ -444,13 +439,7 @@
             });
         }
         
-        // Update mobile cart total
-        function updateMobileCartTotal() {
-            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            document.getElementById('mobileCartTotal').textContent = '₱' + total.toFixed(2);
-            const stickyCart = document.getElementById('mobileStickyCart');
-            stickyCart.style.display = cart.length > 0 ? 'block' : 'none';
-        }
+
     </script>
 </body>
 </html>
