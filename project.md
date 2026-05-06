@@ -358,14 +358,25 @@ restaurant-website/
 - [x] Branch management page (add, edit, delete, activate/deactivate)
 - [x] Admin dropdown refreshes when branches change
 - [x] Stable sorting in admin to prevent reordering on toggle
+- [x] API error handling on all Supabase calls
+- [x] Menu filter caching (no re-fetch on category click)
+- [x] Centralized API credentials in supabase.js
+- [x] SEO meta tags on all public pages
+- [x] Admin pages excluded from search engines (noindex)
+- [x] Test complete branch availability flow end-to-end
 
 ### Pending
-- [ ] Test complete branch availability flow end-to-end
+- None
 
 ### Known Issues
 - Previously: Toggle switch error - FIXED (used UUID instead of slug)
 - Previously: "No branches found" in modal - FIXED (created dedicated branches.html page)
 - Previously: Items reordering on toggle - FIXED (added stable alphabetical sort)
+- Previously: publishAll() updated every row - FIXED (now filters to draft items only)
+- Previously: API calls failed silently - FIXED (added _handleResponse error checking)
+- Previously: Duplicate script tags in index.html - FIXED (removed duplicates)
+- Previously: Orphaned HTML in admin.html - FIXED (removed stale delete modal fragment)
+- Previously: Duplicate loadOrders() in orders-admin.html - FIXED (removed duplicate)
 
 ---
 
@@ -377,6 +388,7 @@ restaurant-website/
 - Demo project for portfolio purposes
 - Uses placeholder images from Unsplash
 - Simple client-side password (not secure for production)
+- `orders.js` is a legacy file not loaded by any page (can be safely removed)
 
 ---
 
@@ -387,3 +399,17 @@ restaurant-website/
 4. Order page shows disabled Add button for unavailable items
 5. Added stable sorting to admin to prevent reordering on toggle
 6. Removed leaf emoji from Branch Settings title for cleaner look
+
+## Recent Updates (2026-05-04)
+1. Added `_handleResponse()` error checking to all Supabase API calls
+2. Fixed `publishAll()` to only target draft items (was updating every row)
+3. Added menu filter caching — category clicks no longer re-fetch from API
+4. Centralized order CRUD methods in `supabaseClient` (createOrder, getOrders, etc.)
+5. Replaced hardcoded API credentials in checkout.html with `supabaseClient.createOrder()`
+6. Removed duplicate `<script>` tags in index.html (supabase.js/app.js loaded twice)
+7. Removed orphaned duplicate delete modal HTML in admin.html
+8. Removed duplicate `loadOrders()` function in orders-admin.html
+9. Fixed mobile sidebar backdrop redirect (no longer navigates to index.html)
+10. Added SEO meta tags to order.html and checkout.html
+11. Added `noindex` meta to admin pages (admin.html, orders-admin.html, branches.html)
+12. Deleted dev test files (delete-test.html, test-order.html) and added to .gitignore

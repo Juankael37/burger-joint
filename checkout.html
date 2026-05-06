@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Complete your Big Buns Burger order. Review your cart and place your pickup order.">
     <title>Checkout | Big Buns Burger</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -173,23 +174,15 @@
                 ${branchAddress ? `<div style="font-size: 0.95rem; color: var(--medium-gray);">${branchAddress}</div>` : ''}
             `;
             
-            // Then save to Supabase in background
+            // Save to Supabase in background
             try {
-                await fetch('https://epbzzntbppyyxeisuvtr.supabase.co/rest/v1/orders', {
-                    method: 'POST',
-                    headers: {
-                        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwYnp6bnRicHB5eXhlaXN1dnRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NjY2MzIsImV4cCI6MjA5MzI0MjYzMn0.w8GcCOAOIhi7Yx7Rhc8i8qszemDI6i0An9qSlTUye2Y',
-                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwYnp6bnRicHB5eXhlaXN1dnRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NjY2MzIsImV4cCI6MjA5MzI0MjYzMn0.w8GcCOAOIhi7Yx7Rhc8i8qszemDI6i0An9qSlTUye2Y',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        items: orderData.items,
-                        total: orderData.total,
-                        pickup_name: orderData.pickup_name,
-                        order_number: orderData.order_number,
-                        branch_id: branchId,
-                        status: 'pending'
-                    })
+                await supabaseClient.createOrder({
+                    items: orderData.items,
+                    total: orderData.total,
+                    pickup_name: orderData.pickup_name,
+                    order_number: orderData.order_number,
+                    branch_id: branchId,
+                    status: 'pending'
                 });
             } catch (e) {
                 console.log('Order saved locally (background save may have failed)');

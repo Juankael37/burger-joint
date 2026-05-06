@@ -41,13 +41,10 @@ async function loadBranchesForAdmin() {
         if (branches && branches.length > 0) {
             branches.forEach(branch => {
                 branchesData[branch.id] = branch;
-                // Also store by slug for lookup
                 if (branch.slug) branchesData[branch.slug] = branch;
                 const option = document.createElement('option');
                 option.value = branch.slug;
                 option.textContent = branch.name;
-                branchesData[branch.id] = branch;
-                branchesData[branch.slug] = branch;
                 select.appendChild(option);
             });
         } else {
@@ -77,23 +74,32 @@ function switchAdminBranch(branchId) {
     renderAdminItems();
 }
 
-function isItemUnavailableAtBranch(item, branchId) {
-    if (!branchId) return false;
-    const unavailable = item.unavailable_at_branches || [];
-    return unavailable.includes(branchId);
+/**
+ * Parse the unavailable_at_branches array for a specific branch.
+ * Returns { unavailable: bool, reason: 'temp_unavailable' | 'sold_out' | null }
+ * Supports legacy plain slugs ("main") and encoded ("main:sold_out").
+ */
+function getUnavailabilityInfo(item, branchSlug) {
+    if (!branchSlug) return { unavailable: false, reason: null };
+    const entries = item.unavailable_at_branches || [];
+    for (const entry of entries) {
+        const parts = entry.split(':');
+        if (parts[0] === branchSlug) {
+            return { unavailable: true, reason: parts[1] || 'temp_unavailable' };
+        }
+    }
+    return { unavailable: false, reason: null };
 }
 
-function toggleItemAvailability(itemId, branchSlug) {
-    const item = menuItems.find(i => i.id === itemId);
-    if (!item) return;
-    
-    const unavailable = item.unavailable_at_branches || [];
-    const isCurrentlyUnavailable = unavailable.includes(branchSlug);
-    const makeUnavailable = !isCurrentlyUnavailable;
-    
-    supabaseClient.toggleItemAvailability(itemId, branchSlug, makeUnavailable).then(() => {
-        loadAdminItems();
-    });
+async function setItemAvailabilityStatus(itemId, branchSlug, reason) {
+    try {
+        await supabaseClient.setItemAvailability(itemId, branchSlug, reason);
+        await loadAdminItems();
+        showToast('Availability updated', 'success');
+    } catch (error) {
+        console.error('Error updating availability:', error);
+        showToast('Failed to update availability', 'error');
+    }
 }
 
 function initLogin() {
@@ -158,11 +164,11 @@ function initAdminEventListeners() {
     const addItemBtn = document.getElementById('addItemBtn');
     if (addItemBtn) addItemBtn.addEventListener('click', () => openModal());
     
-    const closeModal = document.getElementById('closeModal');
-    if (closeModal) closeModal.addEventListener('click', closeModal);
+    const closeModalBtn = document.getElementById('closeModal');
+    if (closeModalBtn) closeModalBtn.addEventListener('click', () => closeModal());
     
     const cancelBtn = document.getElementById('cancelBtn');
-    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', () => closeModal());
     
     const itemForm = document.getElementById('itemForm');
     if (itemForm) itemForm.addEventListener('submit', saveItem);
@@ -176,11 +182,11 @@ function initAdminEventListeners() {
     const previewBtn = document.getElementById('previewBtn');
     if (previewBtn) previewBtn.addEventListener('click', togglePreview);
 
-    const closeDeleteModal = document.getElementById('closeDeleteModal');
-    if (closeDeleteModal) closeDeleteModal.addEventListener('click', closeDeleteModal);
+    const closeDeleteBtn = document.getElementById('closeDeleteModal');
+    if (closeDeleteBtn) closeDeleteBtn.addEventListener('click', () => closeDeleteModal());
     
     const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-    if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+    if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', () => closeDeleteModal());
     
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
     if (confirmDeleteBtn) confirmDeleteBtn.addEventListener('click', confirmDelete);
@@ -329,8 +335,9 @@ function renderAdminItems() {
     }
 
     itemsGrid.innerHTML = filteredItems.map(item => {
-        const unavailableAtBranch = currentAdminBranch ? isItemUnavailableAtBranch(item, currentAdminBranch) : false;
+        const info = currentAdminBranch ? getUnavailabilityInfo(item, currentAdminBranch) : { unavailable: false, reason: null };
         const branchName = branchesData[currentAdminBranch]?.name || 'Selected Branch';
+        const currentStatus = info.unavailable ? info.reason : 'available';
         
         return `
         <div class="admin-item-card">
@@ -343,13 +350,12 @@ function renderAdminItems() {
                 ${currentAdminBranch ? `
                 <div class="branch-availability">
                     <span class="availability-label">${branchName}:</span>
-                    <label class="toggle-switch" onclick="toggleItemAvailability('${item.id}', '${currentAdminBranch}')">
-                        <input type="checkbox" data-item-id="${item.id}" data-branch-id="${currentAdminBranch}" ${!unavailableAtBranch ? 'checked' : ''}>
-                        <span class="toggle-slider"></span>
-                    </label>
-                    <span class="availability-text ${unavailableAtBranch ? 'unavailable-text' : ''}">
-                        ${unavailableAtBranch ? 'Unavailable' : 'Available'}
-                    </span>
+                    <select class="availability-select ${currentStatus !== 'available' ? 'status-unavailable' : ''}" 
+                            onchange="setItemAvailabilityStatus('${item.id}', '${currentAdminBranch}', this.value)">
+                        <option value="available" ${currentStatus === 'available' ? 'selected' : ''}>✅ Available</option>
+                        <option value="temp_unavailable" ${currentStatus === 'temp_unavailable' ? 'selected' : ''}>⏳ Temporarily Unavailable</option>
+                        <option value="sold_out" ${currentStatus === 'sold_out' ? 'selected' : ''}>🚫 Sold Out Today</option>
+                    </select>
                 </div>
                 ` : ''}
                 <div class="admin-item-actions">
@@ -551,105 +557,4 @@ function showToast(message, type = 'success') {
     setTimeout(() => {
         toast.classList.remove('show');
     }, 3000);
-}
-
-function generateSlug(name) {
-    return name.toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim();
-}
-
-function openBranchModal() {
-    document.getElementById('branchModal').style.display = 'flex';
-    renderBranchList();
-}
-
-function closeBranchModal() {
-    document.getElementById('branchModal').style.display = 'none';
-}
-
-async function createBranch() {
-    const nameInput = document.getElementById('newBranchName');
-    const locationInput = document.getElementById('newBranchLocation');
-    const name = nameInput.value.trim();
-    const location = locationInput.value.trim();
-
-    if (!name) {
-        showToast('Please enter a branch name', 'error');
-        return;
-    }
-
-    const slug = generateSlug(name);
-
-    try {
-        const branch = {
-            name: name,
-            slug: slug,
-            location: location || null,
-            address: '',
-            phone: '',
-            is_active: true
-        };
-
-        await supabaseClient.addBranch(branch);
-        nameInput.value = '';
-        locationInput.value = '';
-        showToast('Branch created successfully!');
-        await loadBranches();
-        renderBranchList();
-    } catch (error) {
-        console.error('Error creating branch:', error);
-        showToast('Failed to create branch', 'error');
-    }
-}
-
-async function renderBranchList() {
-    const container = document.getElementById('branchesContainer');
-    const branches = await supabaseClient.getAllBranches();
-
-    if (!branches || branches.length === 0) {
-        container.innerHTML = '<p style="color: var(--medium-gray);">No branches found.</p>';
-        return;
-    }
-
-    container.innerHTML = branches.map(branch => `
-        <div class="branch-item">
-            <div class="branch-info">
-                <span class="branch-name">${branch.name}</span>
-                <span class="branch-slug">@${branch.slug}</span>
-                ${branch.location ? `<span class="branch-location">📍 ${branch.location}</span>` : ''}
-            </div>
-            <div class="branch-actions">
-                <button class="btn btn-sm btn-secondary" onclick="editBranchName('${branch.id}', '${branch.name}')">✏️ Edit</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteBranch('${branch.id}', '${branch.name}')">🗑️</button>
-            </div>
-        </div>
-    `).join('');
-}
-
-function editBranchName(branchId, currentName) {
-    const newName = prompt('Enter new name for this branch:', currentName);
-    if (!newName || newName.trim() === currentName) return;
-
-    supabaseClient.updateBranch(branchId, { name: newName.trim() }).then(() => {
-        showToast('Branch name updated!');
-        loadBranches();
-        renderBranchList();
-    }).catch(err => {
-        showToast('Failed to update branch', 'error');
-    });
-}
-
-function deleteBranch(branchId, branchName) {
-    if (!confirm(`Delete branch "${branchName}"? This cannot be undone.`)) return;
-
-    supabaseClient.deleteBranch(branchId).then(() => {
-        showToast('Branch deleted!');
-        loadBranches();
-        renderBranchList();
-    }).catch(err => {
-        showToast('Failed to delete branch', 'error');
-    });
 }

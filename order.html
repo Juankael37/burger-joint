@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Order fresh burgers, hot dogs, sides and drinks online from Big Buns Burger. Choose your branch and pick up in store.">
+    <meta property="og:title" content="Order Now | Big Buns Burger">
+    <meta property="og:description" content="Order fresh burgers, hot dogs, sides and drinks online from Big Buns Burger.">
+    <meta property="og:type" content="restaurant">
     <title>Order Now | Big Buns Burger</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -92,9 +96,55 @@
                 font-size: 1.1rem;
             }
         }
-        .order-item.unavailable-item { opacity: 0.6; }
-        .order-item.unavailable-item .add-btn { background: var(--medium-gray); cursor: not-allowed; }
-        .unavailable-label { display: block; color: var(--primary-red); font-size: 0.75rem; font-weight: 600; margin-top: 5px; }
+
+        /* Unavailable item stamp styles */
+        .order-item-unavailable {
+            position: relative;
+            overflow: hidden;
+            opacity: 0.7;
+            filter: grayscale(60%);
+            pointer-events: none;
+            border-color: #ccc !important;
+        }
+        .order-item-unavailable .order-item-name { color: #999; }
+        .order-item-unavailable .order-item-price { color: #bbb; }
+        .add-btn-disabled {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: #ccc !important;
+            color: #fff;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: not-allowed;
+        }
+        .stamp-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-20deg);
+            padding: 6px 12px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 4px;
+            white-space: nowrap;
+            z-index: 10;
+            pointer-events: none;
+            text-align: center;
+        }
+        .stamp-sold-out {
+            color: #D32F2F;
+            border: 3px solid #D32F2F;
+            background: rgba(211, 47, 47, 0.08);
+        }
+        .stamp-temp-unavailable {
+            color: #E65100;
+            border: 3px solid #E65100;
+            background: rgba(230, 81, 0, 0.08);
+        }
     </style>
 </head>
 <body>
@@ -156,7 +206,7 @@
                 </div>
                 <div class="cart-total">
                     <span>Total:</span>
-                    <span id="cartTotal">$0.00</span>
+                    <span id="cartTotal">₱0.00</span>
                 </div>
                 <button class="btn btn-primary checkout-btn" onclick="goToCheckout()">Checkout →</button>
             </aside>
@@ -272,15 +322,26 @@
             const branchSlug = localStorage.getItem('bigBunsBranch');
             
             try {
-                const fetchedItems = branchSlug 
-                    ? await supabaseClient.getMenuItemsForBranch(branchSlug)
-                    : await supabaseClient.getMenuItems();
+                const fetchedItems = await supabaseClient.getMenuItems();
                     
                 if (fetchedItems && fetchedItems.length > 0) {
                     items = fetchedItems;
                 }
             } catch (error) {
                 console.log('Using fallback menu');
+            }
+            
+            // Helper: check item unavailability + reason for current branch
+            function getItemStatus(item) {
+                if (!branchSlug) return { unavailable: false, reason: null };
+                const entries = item.unavailable_at_branches || [];
+                for (const entry of entries) {
+                    const parts = entry.split(':');
+                    if (parts[0] === branchSlug) {
+                        return { unavailable: true, reason: parts[1] || 'temp_unavailable' };
+                    }
+                }
+                return { unavailable: false, reason: null };
             }
             
             const categories = {
@@ -294,16 +355,24 @@
                 const categoryItems = items.filter(i => i.category === category);
                 let html = '';
                 categoryItems.forEach(item => {
-                    const unavailable = (item.unavailable_at_branches || []).includes(branchSlug);
-                    const disabledAttr = unavailable ? 'disabled' : '';
-                    const unavailableClass = unavailable ? 'unavailable-item' : '';
-                    const unavailableLabel = unavailable ? '<span class="unavailable-label">Unavailable</span>' : '';
-                    html += `<div class="order-item ${unavailableClass}">
-                        <span class="order-item-name">${item.name}</span>
-                        <span class="order-item-price">₱${parseFloat(item.price).toFixed(2)}</span>
-                        ${unavailableLabel}
-                        <button class="add-btn" ${disabledAttr} onclick="addToCart({name:'${item.name}',price:${item.price}})">${unavailable ? 'Unavailable' : 'Add'}</button>
-                    </div>`;
+                    const status = getItemStatus(item);
+                    
+                    if (status.unavailable) {
+                        const stampText = status.reason === 'sold_out' ? 'SOLD OUT' : 'TEMPORARILY UNAVAILABLE';
+                        const stampClass = status.reason === 'sold_out' ? 'stamp-sold-out' : 'stamp-temp-unavailable';
+                        html += `<div class="order-item order-item-unavailable">
+                            <div class="stamp-overlay ${stampClass}">${stampText}</div>
+                            <span class="order-item-name">${item.name}</span>
+                            <span class="order-item-price">₱${parseFloat(item.price).toFixed(2)}</span>
+                            <span class="add-btn add-btn-disabled">Unavailable</span>
+                        </div>`;
+                    } else {
+                        html += `<div class="order-item">
+                            <span class="order-item-name">${item.name}</span>
+                            <span class="order-item-price">₱${parseFloat(item.price).toFixed(2)}</span>
+                            <button class="add-btn" onclick="addToCart({name:'${item.name}',price:${item.price}})">Add</button>
+                        </div>`;
+                    }
                 });
                 document.getElementById(elementId).innerHTML = html;
             }
@@ -370,13 +439,7 @@
             });
         }
         
-        // Update mobile cart total
-        function updateMobileCartTotal() {
-            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            document.getElementById('mobileCartTotal').textContent = '₱' + total.toFixed(2);
-            const stickyCart = document.getElementById('mobileStickyCart');
-            stickyCart.style.display = cart.length > 0 ? 'block' : 'none';
-        }
+
     </script>
 </body>
 </html>
