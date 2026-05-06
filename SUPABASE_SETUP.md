@@ -87,21 +87,31 @@ This will automatically cancel/soft-delete pending orders after 12 hours.
 ### Option 1: pg_cron (Recommended)
 
 ```sql
--- Enable pg_cron extension
+-- Enable pg_cron extension (if not already enabled)
 CREATE EXTENSION IF NOT EXISTS pg_cron;
 
 -- Grant permissions
 GRANT USAGE ON SCHEMA cron TO postgres;
 
--- Create the cleanup job (runs every hour)
+-- Create the cleanup job for pending orders (runs every hour)
 SELECT cron.schedule(
-  'cleanup-old-pending-orders',
+  'delete-old-pending-orders',
   '0 * * * *', -- Every hour
   $$
-  UPDATE orders 
-  SET status = 'cancelled', deleted_at = NOW()
+  DELETE FROM orders 
   WHERE status = 'pending' 
   AND created_at < NOW() - INTERVAL '12 hours'
+  $$
+);
+
+-- Create the cleanup job for completed orders (runs every hour)
+SELECT cron.schedule(
+  'delete-old-completed-orders',
+  '0 * * * *', -- Every hour
+  $$
+  DELETE FROM orders 
+  WHERE status = 'completed' 
+  AND created_at < NOW() - INTERVAL '24 hours'
   $$
 );
 ```
@@ -110,20 +120,25 @@ SELECT cron.schedule(
 
 ```sql
 -- Create cleanup function
-CREATE OR REPLACE FUNCTION cleanup_old_pending_orders()
+CREATE OR REPLACE FUNCTION cleanup_old_orders()
 RETURNS void
 LANGUAGE plpgsql
 AS $$
 BEGIN
-  UPDATE orders 
-  SET status = 'cancelled', deleted_at = NOW()
+  -- Delete pending orders older than 12 hours
+  DELETE FROM orders 
   WHERE status = 'pending' 
   AND created_at < NOW() - INTERVAL '12 hours';
+
+  -- Delete completed orders older than 24 hours
+  DELETE FROM orders 
+  WHERE status = 'completed' 
+  AND created_at < NOW() - INTERVAL '24 hours';
 END;
 $$;
 
--- Test it
-SELECT cleanup_old_pending_orders();
+-- Test it manually
+SELECT cleanup_old_orders();
 ```
 
 ---

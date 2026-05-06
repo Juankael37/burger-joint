@@ -6,6 +6,9 @@
 - **Tech Stack**: HTML5, CSS3, Vanilla JavaScript, Supabase (Database & Storage)
 - **Core Functionality**: Branch selection, ordering system, admin dashboard with per-branch menu availability
 - **Target Users**: Restaurant customers (public), Branch staff (admin)
+- **Repository**: https://github.com/Juankael37/burger-joint
+- **Hosting**: Netlify (auto-deploys from GitHub)
+- **Active Branch**: `fix/code-quality-improvements`
 
 ---
 
@@ -37,7 +40,19 @@ ALTER TABLE orders ADD COLUMN branch_id UUID REFERENCES branches(id);
 
 -- Add availability column (TEXT array for branch slugs)
 ALTER TABLE menu_items ADD COLUMN unavailable_at_branches TEXT[];
+
+-- RLS policies for branches table (REQUIRED)
+CREATE POLICY "Public read branches" ON branches FOR SELECT TO public USING (true);
+CREATE POLICY "Public insert branches" ON branches FOR INSERT TO public WITH CHECK (true);
+CREATE POLICY "Public update branches" ON branches FOR UPDATE TO public USING (true) WITH CHECK (true);
+CREATE POLICY "Public delete branches" ON branches FOR DELETE TO public USING (true);
 ```
+
+### Availability Encoding
+- Format: `"branchSlug:reason"` in `unavailable_at_branches` array
+- Reasons: `temp_unavailable`, `sold_out`
+- Legacy: plain slug `"main"` treated as `temp_unavailable`
+- API: `supabaseClient.setItemAvailability(itemId, branchSlug, reason)`
 
 ### URL Structure
 | Page | URL |
@@ -54,9 +69,30 @@ ALTER TABLE menu_items ADD COLUMN unavailable_at_branches TEXT[];
 - [x] Branch parameter in order page URL
 - [x] Orders saved with branch_id
 - [x] Admin branch filter dropdown
-- [x] Per-branch item availability toggle
-- [x] Branch management page (add, edit, delete branches)
-- [x] Branch availability filters items on order page
+- [x] Per-branch item availability dropdown (3 states)
+- [x] Branch management page (add, edit details, delete branches)
+- [x] Unavailable items show grayed-out with stamp overlay on order page
+
+---
+
+## File Structure
+```
+restaurant-website/
+├── project.md           (this file)
+├── index.html          (public page)
+├── order.html         (ordering page)
+├── checkout.html     (checkout page)
+├── admin.html        (menu admin)
+├── orders-admin.html (orders admin)
+├── branches.html     (branch settings — full CRUD)
+├── css/
+│   └── styles.css  (all styles)
+├── js/
+│   ├── supabase.js (API client — single source of truth for credentials)
+│   ├── app.js    (public page logic)
+│   └── admin.js  (admin dashboard logic)
+└── assets/          (static assets)
+```
 
 ---
 
@@ -76,9 +112,11 @@ ALTER TABLE menu_items ADD COLUMN unavailable_at_branches TEXT[];
 **Order Page (order.html)**
 - Branch badge display
 - Menu categories with Add buttons
-- Cart sidebar (sticky on desktop)
+- Cart sidebar (sticky on desktop, shows ₱ peso sign)
 - Mobile sticky checkout button
-- Disabled Add button for unavailable items
+- Unavailable items: grayed-out with diagonal stamp overlay
+  - "TEMPORARILY UNAVAILABLE" stamp (amber border)
+  - "SOLD OUT" stamp (red border)
 
 **Checkout (checkout.html)**
 - Order summary
@@ -86,9 +124,13 @@ ALTER TABLE menu_items ADD COLUMN unavailable_at_branches TEXT[];
 - Success page with order number + branch info
 
 **Admin Pages**
-- admin.html: Menu management + branch availability toggle
-- orders-admin.html: Orders list with branch filter
-- branches.html: Dedicated branch settings page
+- admin.html: Menu management + availability dropdown (3 states)
+- orders-admin.html: Orders list with branch filter (uses supabaseClient)
+- branches.html: Full branch CRUD (name, location, address, phone, status)
+
+**Admin Header (Two-Row Layout)**
+- Top row: Logo + nav tabs (Menu Items, Orders, Branches, Order Page, View Site)
+- Bottom toolbar: Branch selector + Publish button + Logout
 
 ### Responsive Breakpoints
 - Desktop: > 1024px
@@ -111,107 +153,10 @@ ALTER TABLE menu_items ADD COLUMN unavailable_at_branches TEXT[];
 **Typography**
 - Headings: Poppins (700 weight)
 - Body: Open Sans (400 weight)
-- Hero Title: 72px (desktop), 48px (mobile)
-- Section Titles: 48px (desktop), 32px (mobile)
-- Body Text: 16px
-- Small Text: 14px
-
-### Components
-
-**Navigation**
-- Logo (left)
-- Links: Home, About, Menu, Contact
-- Order Now button (opens branch modal)
-- Mobile: hamburger menu with slide-out drawer
-
-**Branch Selection Modal**
-- Modal with branch cards
-- Each card shows name, location, address, phone
-- Click navigates to order.html?branch={slug}
-
-**Hero**
-- Full-screen background image (burger/fries themed)
-- Overlay gradient (dark to transparent)
-- Centered content: logo, tagline, CTA buttons
-
-**Menu Cards**
-- Image (top, 200px height)
-- Category tag
-- Item name (bold)
-- Description (muted, 2 lines max)
-- Price (red, bold)
-- Hover: subtle lift effect
-
-**Order Page**
-- Branch badge (shows current branch)
-- Menu categories with Add buttons
-- Cart sidebar with quantity controls
-- Checkout button
-
-**Admin Item Cards**
-- Thumbnail (150x150)
-- Name + category
-- Branch availability toggle
-- Edit/Delete buttons
-- Status badge (Draft/Published)
-
-**Forms**
-- Input fields with red focus border
-- Drag-drop image zone with dashed border
-- Buttons: Primary (red), Secondary (outline)
 
 ---
 
-## Functionality Specification
-
-### Public Page Features
-1. **Smooth Scroll Navigation** - Click nav links to scroll to sections
-2. **Mobile Menu** - Hamburger toggle for mobile
-3. **Branch Selection** - Modal to select ordering branch
-4. **Menu Categories** - Filter menu by category (Burgers, Hot Dogs, Sides, Drinks)
-5. **Menu Data Loading** - Load from Supabase with per-branch filtering
-
-### Order Flow Features
-1. **Branch Parameter** - Read from URL (?branch=main)
-2. **Branch Badge** - Display current branch on order page
-3. **Cart Management** - Add/remove items, adjust quantities
-4. **Checkout** - Enter pickup name, place order
-5. **Success** - Show order number + branch info
-6. **Branches Data** - Save branch_id with each order
-
-### Admin Dashboard Features
-1. **Password Protection** - Simple password check ("admin")
-2. **Dashboard View** - Grid of all menu items
-3. **Branch Filter** - Dropdown to select branch for availability
-4. **Branch Availability Toggle** - Mark items available/unavailable per branch
-5. **Add New Item** - Modal form with:
-   - Category dropdown
-   - Item name input
-   - Description textarea
-   - Price input
-   - Drag-drop image upload
-   - Save as draft button
-6. **Edit Item** - Click to edit existing item
-7. **Delete Item** - Confirmation dialog before delete
-8. **Image Upload** - Drag-drop or click to browse
-9. **Preview Panel** - Live preview of menu changes
-10. **Publish** - Sync draft changes to public menu
-11. **Supabase Persistence** - Data and images saved in Supabase
-
-### Branch Settings Features (branches.html)
-1. **View All Branches** - Table showing name, slug, location, status
-2. **Add New Branch** - Form with name + location
-3. **Edit Branch** - Inline edit branch name, save to update
-4. **Activate/Deactivate** - Toggle branch active status
-5. **Delete Branch** - Remove branch with confirmation
-6. **Auto-refresh** - Admin dropdown updates when branches change
-
-### Orders Admin Features
-1. **Branch Filter** - Filter orders by branch
-2. **Status Updates** - Mark pending/claimed/completed
-3. **Search** - Search by order number
-
-### Data Structure
+## Data Structures
 ```javascript
 // Menu Item
 {
@@ -222,7 +167,8 @@ ALTER TABLE menu_items ADD COLUMN unavailable_at_branches TEXT[];
   price: 9.49,
   image: "url",
   status: "published" | "draft",
-  unavailable_at_branches: ["north"] // Array of branch slugs where unavailable
+  unavailable_at_branches: ["main:sold_out", "north:temp_unavailable"]
+  // Format: "branchSlug:reason" — legacy plain slugs treated as temp_unavailable
 }
 
 // Order
@@ -250,96 +196,9 @@ ALTER TABLE menu_items ADD COLUMN unavailable_at_branches TEXT[];
 
 ---
 
-## File Structure
-```
-restaurant-website/
-├── project.md           (this file)
-├── index.html          (public page)
-├── order.html         (ordering page)
-├── checkout.html     (checkout page)
-├── admin.html        (menu admin)
-├── orders-admin.html (orders admin)
-├── branches.html     (branch settings)
-├── css/
-│   └── styles.css  (all styles)
-├── js/
-│   ├── supabase.js (API client)
-│   ├── app.js    (public page logic)
-│   ├── admin.js  (admin dashboard logic)
-│   └── orders.js (orders admin logic)
-└── supabase-mcp/    (helper scripts)
-```
-
----
-
-## Sample Menu Data
-
-### Burgers
-| Name | Description | Price |
-|------|-------------|-------|
-| Classic Burger | Lettuce, tomato, pickles, onions, mustard, ketchup | ₱569.40 |
-| Bacon Burger | Classic + crispy bacon | ₱659.40 |
-| Little Cheeseburger | Smaller patty with cheese | ₱479.40 |
-| Bacon Cheeseburger | Bacon + cheese + all toppings | ₱719.40 |
-| Veggie Burger | Grilled mushrooms, onions, peppers, lettuce, tomato | ₱629.40 |
-
-### Hot Dogs
-| Name | Description | Price |
-|------|-------------|-------|
-| Regular Hot Dog | All-beef hot dog in bun | ₱389.40 |
-| Bacon Dog | Hot dog wrapped in bacon | ₱479.40 |
-| Cheese Dog | Hot dog with melted cheese | ₱449.40 |
-
-### Sides
-| Name | Description | Price |
-|------|-------------|-------|
-| Little Fries | Hand-cut, fresh potatoes | ₱269.40 |
-| Regular Fries | Large serving of fries | ₱359.40 |
-| Cheese Fries | Fries topped with melted cheese | ₱449.40 |
-| Onion Rings | Beer-battered crispy rings | ₱329.40 |
-
-### Drinks
-| Name | Description | Price |
-|------|-------------|-------|
-| Small Drink | Choice of soda | ₱179.40 |
-| Large Drink | Large soda refillable | ₱209.40 |
-| Milkshake | Chocolate, vanilla, or strawberry | ₱359.40 |
-
----
-
 ## Admin Credentials
 - **Password**: admin
 - **Access**: Navigate to admin.html
-
----
-
-## Acceptance Criteria
-
-### Public Page
-- [x] Hero section displays with background image and CTA buttons
-- [x] Navigation scrolls smoothly to sections
-- [x] About section shows story and photos
-- [x] Menu displays categorized items with images
-- [x] Category filter works correctly
-- [x] Contact section shows hours and info
-- [x] Mobile responsive on all breakpoints
-
-### Admin Page
-- [x] Password protection works
-- [x] Can add new menu item with image
-- [x] Can edit existing items
-- [x] Can delete items with confirmation
-- [x] Drag-drop image upload works
-- [x] Preview shows draft changes
-- [x] Publish syncs to public menu
-- [x] Data persists after page refresh
-- [x] Branch availability toggle works
-- [x] Branch settings page - add/edit/delete branches
-
-### Order Page
-- [x] Shows items for selected branch
-- [x] Unavailable items have disabled Add button
-- [x] Cart works with branch context
 
 ---
 
@@ -349,67 +208,107 @@ restaurant-website/
 - [x] Base restaurant website with hero, about, menu, contact
 - [x] Admin dashboard with CRUD operations
 - [x] Supabase integration for data persistence
-- [x] Image upload to Supabase Storage
+- [x] Image upload to Supabase Storage (with client-side compression)
 - [x] Multi-branch feature (branch selection, orders with branch_id)
 - [x] Admin branch filter for orders
-- [x] Per-branch item availability toggle
-- [x] Order page filters unavailable items by branch
-- [x] Add button disabled for unavailable items
-- [x] Branch management page (add, edit, delete, activate/deactivate)
-- [x] Admin dropdown refreshes when branches change
-- [x] Stable sorting in admin to prevent reordering on toggle
-- [x] API error handling on all Supabase calls
+- [x] Per-branch availability (3-state: available / temp unavailable / sold out)
+- [x] Order page stamp overlays for unavailable items
+- [x] Branch management page with full CRUD (name, location, address, phone)
+- [x] Professional admin header (two-row layout)
+- [x] All pages use supabaseClient (no hardcoded credentials)
+- [x] API error handling on all Supabase calls (_handleResponse)
 - [x] Menu filter caching (no re-fetch on category click)
-- [x] Centralized API credentials in supabase.js
 - [x] SEO meta tags on all public pages
 - [x] Admin pages excluded from search engines (noindex)
-- [x] Test complete branch availability flow end-to-end
+- [x] Code refactored: 190 lines of dead code removed (2026-05-05)
 
 ### Pending
-- None
+- [ ] Add RLS policies for `branches` table (INSERT/UPDATE/DELETE) in Supabase Dashboard
+- [ ] Seed 3 branches (Main, North, South) into Supabase after RLS fix
+- [ ] Remove legacy `orders.js` file (not loaded by any page)
 
 ### Known Issues
-- Previously: Toggle switch error - FIXED (used UUID instead of slug)
-- Previously: "No branches found" in modal - FIXED (created dedicated branches.html page)
-- Previously: Items reordering on toggle - FIXED (added stable alphabetical sort)
-- Previously: publishAll() updated every row - FIXED (now filters to draft items only)
-- Previously: API calls failed silently - FIXED (added _handleResponse error checking)
-- Previously: Duplicate script tags in index.html - FIXED (removed duplicates)
-- Previously: Orphaned HTML in admin.html - FIXED (removed stale delete modal fragment)
-- Previously: Duplicate loadOrders() in orders-admin.html - FIXED (removed duplicate)
+- **Branches table empty in Supabase** — Admin dropdown uses fallback data. Need INSERT RLS policy + seed.
+
+---
+
+## Sample Menu Data
+
+### Burgers
+| Name | Price |
+|------|-------|
+| Classic Burger | ₱569.40 |
+| Bacon Burger | ₱659.40 |
+| Little Cheeseburger | ₱479.40 |
+| Bacon Cheeseburger | ₱719.40 |
+| Veggie Burger | ₱629.40 |
+
+### Hot Dogs
+| Name | Price |
+|------|-------|
+| Regular Hot Dog | ₱389.40 |
+| Bacon Dog | ₱479.40 |
+| Cheese Dog | ₱449.40 |
+
+### Sides
+| Name | Price |
+|------|-------|
+| Little Fries | ₱269.40 |
+| Regular Fries | ₱359.40 |
+| Cheese Fries | ₱449.40 |
+| Onion Rings | ₱329.40 |
+
+### Drinks
+| Name | Price |
+|------|-------|
+| Small Drink | ₱179.40 |
+| Large Drink | ₱209.40 |
+| Milkshake | ₱359.40 |
 
 ---
 
 ## Notes
-- Uses slugs (main, north, south) for branch identification in unavailable_at_branches
+- Uses slugs (main, north, south) for branch identification
 - Orders saved with branch_id (UUID from branches table)
-- Branch dropdown values stored as branch slugs
-- Branch settings page communicates with admin via postMessage
 - Demo project for portfolio purposes
-- Uses placeholder images from Unsplash
 - Simple client-side password (not secure for production)
-- `orders.js` is a legacy file not loaded by any page (can be safely removed)
+- `supabase-mcp/` directory contains helper scripts (not part of main app)
 
 ---
 
-## Recent Updates (2025-05-02)
-1. Fixed branch availability filter - use slugs instead of UUIDs
-2. Added branch management page (branches.html) with full CRUD
-3. Admin dropdown now refreshes when branches are modified
-4. Order page shows disabled Add button for unavailable items
-5. Added stable sorting to admin to prevent reordering on toggle
-6. Removed leaf emoji from Branch Settings title for cleaner look
+## Change Log
 
-## Recent Updates (2026-05-04)
+### 2025-05-02
+1. Fixed branch availability filter — use slugs instead of UUIDs
+2. Added branch management page (branches.html) with CRUD
+3. Admin dropdown refreshes when branches are modified
+4. Added stable sorting to admin to prevent reordering on toggle
+
+### 2026-05-04
 1. Added `_handleResponse()` error checking to all Supabase API calls
-2. Fixed `publishAll()` to only target draft items (was updating every row)
-3. Added menu filter caching — category clicks no longer re-fetch from API
-4. Centralized order CRUD methods in `supabaseClient` (createOrder, getOrders, etc.)
-5. Replaced hardcoded API credentials in checkout.html with `supabaseClient.createOrder()`
-6. Removed duplicate `<script>` tags in index.html (supabase.js/app.js loaded twice)
-7. Removed orphaned duplicate delete modal HTML in admin.html
-8. Removed duplicate `loadOrders()` function in orders-admin.html
-9. Fixed mobile sidebar backdrop redirect (no longer navigates to index.html)
-10. Added SEO meta tags to order.html and checkout.html
-11. Added `noindex` meta to admin pages (admin.html, orders-admin.html, branches.html)
-12. Deleted dev test files (delete-test.html, test-order.html) and added to .gitignore
+2. Fixed `publishAll()` to only target draft items
+3. Added menu filter caching
+4. Centralized order CRUD in `supabaseClient`
+5. Replaced hardcoded credentials in checkout.html
+6. Removed duplicate `<script>` tags in index.html
+7. Removed orphaned delete modal HTML in admin.html
+8. Fixed mobile sidebar backdrop redirect
+9. Added SEO meta tags to order.html and checkout.html
+10. Added `noindex` meta to admin pages
+11. Deleted dev test files (delete-test.html, test-order.html)
+
+### 2026-05-05 — Feature Changes
+1. **Admin header redesign** — Two-row layout: logo+nav on top, branch selector+actions on bottom
+2. **Availability dropdown** — Replaced toggle with 3-option select (Available / Temporarily Unavailable / Sold Out Today)
+3. **Encoded availability** — Entries stored as `"branchSlug:reason"` (backward-compatible with legacy plain slugs)
+4. **Order page stamps** — Unavailable items show grayed-out with diagonal stamp overlay
+5. **Branches page rebuilt** — Expandable cards with full detail editing (name, location, address, phone)
+
+### 2026-05-05 — Refactoring (190 lines removed)
+6. Removed redundant `getMenuItemsForBranch()` from supabase.js (identical to `getMenuItems()`)
+7. Removed duplicate `branchesData` assignments in admin.js
+8. Removed 7 dead branch management functions from admin.js (~100 lines)
+9. Replaced 5 hardcoded Supabase fetch calls in orders-admin.html with `supabaseClient` methods
+10. Fixed `$0.00` → `₱0.00` bug in order page cart total
+11. Removed dead CSS and `updateMobileCartTotal()` function
+12. Fixed CSS media query brace structure in order.html
